@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: gui
+data:
+  DISPLAY: ":1"
+  QT_X11_NO_MITSHM: "1"
+  XAUTHORITY: /tmp/.docker.xauth

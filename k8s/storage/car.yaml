@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dev
+spec:
+  storageClassName: local-storage
+  local:
+    path: /dev
+  capacity:
+    storage: 10Mi
+  volumeMode: Filesystem
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: agent
+          operator: In
+          values: [car]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dev
+spec:
+  storageClassName: local-storage
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 10Mi

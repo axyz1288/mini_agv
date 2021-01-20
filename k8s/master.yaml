@@ -1,0 +1,67 @@
+apiVersion: core/v1
+kind: Pod
+metadata:
+  name: master
+spec:
+  nodeSelector:
+    agent: master
+  containers:
+  - name: ros
+    image: axyz1288/aidocker:ros
+    securityContext:
+      runAsUser: 1000
+    ports:
+    - containerPort: 11311
+
+  - name: pybullet
+    image: axyz1288/aidocker:pybullet
+    securityContext:
+      runAsUser: 1000
+    ports:
+    - containerPort: 11311
+    resources:
+      requests:
+        memory: "10M"
+        cpu: "0.1"
+      limits:
+        memory: "100M"
+        cpu: "0.5"
+    volumeMounts:
+    - name: x11
+      mountPath: /tmp/.X11-unix
+    - name: pybullet
+      mountPath: /home/aiRobots
+    envFrom:
+    - configMapRef:
+        name: gui
+    args: ["/bin/python3", "./env/AGV.py", "-E", "AGV", "-A", "maddqn", "-m", "./env/AGV.npy"]
+
+  - name: pytorch
+    image: axyz1288/aidocker:pytorch
+    securityContext:
+      runAsUser: 1000
+    ports:
+    - containerPort: 11311
+    - containerPort: 6006
+    resources:
+      requests:
+        memory: "4G"
+        cpu: "1"
+      limits:
+        memory: "8G"
+        cpu: "4"
+    volumeMounts:
+    - name: pytorch
+      mountPath: /home/aiRobots
+    args: ["/bin/python3", "./MARL/main.py", "-E", "AGV", "-A", "maddqn", "--gpu", "cuda:0", "--dir", "./MARL"]
+
+  volumes:
+  - name: x11
+    persistentVolumeClaim:
+      claimName: x11
+  - name: pybullet
+    persistentVolumeClaim:
+      claimName: pybullet
+  - name: pytorch
+    persistentVolumeClaim:
+      claimName: pytorch

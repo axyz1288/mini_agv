@@ -4,8 +4,8 @@ metadata:
   name: car
 spec:
   type: ClusterIP
+  clusterIP: None
   ports:
     - port: 11311
-      targetPort: 11311
   selector:
     app: car
