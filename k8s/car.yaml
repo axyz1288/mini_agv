@@ -1,0 +1,85 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: dev
+spec:
+  storageClassName: local-storage
+  local:
+    path: /dev
+  capacity:
+    storage: 10Mi
+  volumeMode: Filesystem
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: agent
+          operator: In
+          values: [car]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: dev
+spec:
+  storageClassName: local-storage
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 10Mi
+---
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: car
+  labels:
+    app: car
+spec:
+  selector:
+    matchLabels:
+      app: car
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: car
+    spec:
+      nodeSelector:
+        agent: car
+      containers:
+      - name: car
+        image: axyz1288/car
+        securityContext:
+          runAsUser: 1000
+          privileged: true
+        ports:
+        - containerPort: 11311
+        resources:
+          requests:
+            memory: "10M"
+            cpu: "0.1"
+          limits:
+            memory: "500M"
+            cpu: "1"
+        volumeMounts:
+        - name: dev
+          mountPath: /dev
+        env:
+        - name: MY_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: ROS_HOSTNAME
+          value: MY_NODE_NAME
+        - name: ROS_MASTER_URI
+          value: http://ros:11311
+        args: ["~/car/build/car", "car1", "gas"]
+      volumes:
+      - name: dev
+        persistentVolumeClaim:
+          claimName: dev

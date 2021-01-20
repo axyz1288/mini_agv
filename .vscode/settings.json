@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "iostream": "cpp",
+        "thread": "cpp",
+        "chrono": "cpp",
+        "*.tcc": "cpp",
+        "limits": "cpp",
+        "memory": "cpp",
+        "type_traits": "cpp"
+    }
+}
