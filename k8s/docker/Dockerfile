@@ -1,4 +1,4 @@
-FROM axyz1288/aidocker:ros
+FROM axyz1288/aidocker:ros-arm64
 
 # Install realsense2
 RUN apt-key adv --keyserver keys.gnupg.net --recv-key F6E65AC044F831AC80A06380C8B3A55A6F3EFCDE \
@@ -13,5 +13,5 @@ RUN usermod -a -G dialout ${USERNAME}
 
 RUN curl https://raw.githubusercontent.com/axyz1288/car/main/k8s/docker/car_entrypoint.sh > /car_entrypoint.sh
 RUN chmod a+x /car_entrypoint.sh
-ENTRYPOINT [ "/usr/bin/tini", "--", "/car_entrypoint.sh" ]
+ENTRYPOINT [ "/usr/bin/tini-arm64", "--", "/car_entrypoint.sh" ]
 CMD [ "bash" ]
