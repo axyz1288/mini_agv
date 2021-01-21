@@ -15,7 +15,7 @@ spec:
     required:
       nodeSelectorTerms:
       - matchExpressions: 
-        - key: app
+        - key: agent
           operator: In
           values: [master]
 
@@ -37,7 +37,7 @@ spec:
     required:
       nodeSelectorTerms:
       - matchExpressions: 
-        - key: app
+        - key: agent
           operator: In
           values: [master]
 
@@ -59,7 +59,7 @@ spec:
     required:
       nodeSelectorTerms:
       - matchExpressions: 
-        - key: app
+        - key: agent
           operator: In
           values: [master]
 
