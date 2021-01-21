@@ -172,12 +172,15 @@ void Car::ActionCallBack(const std_msgs::Float32MultiArray &msg)
 
 void Car::CheckData()
 {
-    if (action.size()) action.erase(action.begin(), action.begin() + 6);
-    while (action.size() < idx+1)
-        this_thread::sleep_for(std::chrono::microseconds(100));
+    action = {};
+    while (action.size() < 6)
+        this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
 int Car::GetAction()
 {
-    return int(action.at(idx).at(0));
+    if (action.size() >= idx)
+        return int(action.at(idx).at(0));
+    else
+        return -1;
 }
