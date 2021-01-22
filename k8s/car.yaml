@@ -46,7 +46,7 @@ spec:
           value: MY_NODE_NAME
         - name: ROS_MASTER_URI
           value: http://master:11311
-        args: ["~/car/build/car", "car1", "gas"]
+        args: ["~/car/build/car", "$(MY_NODE_NAME)", "gas"]
       volumes:
       - name: dev
         persistentVolumeClaim:
