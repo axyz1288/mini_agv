@@ -3,6 +3,9 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Quaternion.h>
+#include <tf/transform_datatypes.h>
+#include <tf/LinearMath/Matrix3x3.h>
 #include <thread>
 
 class AGV: public MotorUnion
@@ -14,7 +17,7 @@ public:
 	@ target_y, 
 	@ target_oz
 	*/
-	void Move(const float target_x, const float target_y, const float target_oz, int target_velocity=default_velocity);
+	void Move(const float target_x, const float target_y, const float target_oz, const int target_velocity=default_velocity);
 	/*
 	@ Distance
 	@ Velocity
@@ -84,7 +87,7 @@ private:
 	const int max_velocity;
 
 	float x, y, oz = 0; 
-	float threshold = 0.1;
+	float threshold = 0.05;
 	
 	vector<vector<float>> action = {};
 	const int idx;
@@ -94,4 +97,5 @@ private:
 	ros::Subscriber sub_pos;
 	thread thread_sub_a;
 	thread thread_sub_pos;
+	bool thread_break = false;
 };

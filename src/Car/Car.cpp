@@ -179,8 +179,5 @@ void Car::CheckData()
 
 int Car::GetAction()
 {
-    if (action.size() >= idx)
-        return int(action.at(idx).at(0));
-    else
-        return -1;
+    return int(action.at(idx).at(0));
 }
