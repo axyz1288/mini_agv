@@ -1,5 +1,5 @@
 #pragma once
-#include "./MotorUnion/MotorUnion.h"
+#include "./Car/Car.h"
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -8,9 +8,9 @@
 #include <tf/LinearMath/Matrix3x3.h>
 #include <thread>
 
-class AGV : public MotorUnion
+class AGV : protected Car
 {
-	// Control
+// Control
 public:
 	/*
 	@ target_x,
@@ -18,97 +18,82 @@ public:
 	@ target_oz,
 	@ target_velocity
 	*/
-	void Move(const float target_x, const float target_y, const float target_oz, const int &target_velocity = default_velocity);
+	void Move(const float target_x, const float target_y, const float target_oz, const int &target_velocity = Car::default_velocity);
 	/*
 	@ target_x,
 	@ target_y,
 	@ target_velocity
 	*/
-	void Move(const float target_x, const float target_y, const int &target_velocity = default_velocity);
+	void Move(const float target_x, const float target_y, const int &target_velocity = Car::default_velocity);
 	/*
-	@ target_oz,
+	@ Distance
+	@ Velocity
+	*/
+	virtual void MoveForward(const float distance = 0.0f, const int &velocity = Car::default_velocity);
+	/*
+	@ Distance
+	@ Velocity
+	*/
+	virtual void MoveBackward(const float distance = 0.0f, const int &velocity = Car::default_velocity);
+	/*
+	@ target_oz (rad)
 	@ target_velocity
 	*/
-	void Move(const float target_oz, const int &target_velocity = default_velocity);
+	virtual void Rotate(float target_oz, const int &target_velocity = Car::default_velocity);
 	/*
-	@ Distance
+	@ Direction (rad)
 	@ Velocity
 	*/
-	void MoveForward(const float &distance = 0.0f, const int &velocity = default_velocity);
+	virtual void RotateLeft(const float direction = 0.0f, const int &velocity = 100);
 	/*
-	@ Distance
+	@ Direction (rad)
 	@ Velocity
 	*/
-	void MoveBackward(const float &distance = 0.0f, const int &velocity = default_velocity);
+	virtual void RotateRight(const float direction = 0.0f, const int &velocity = 100);
 	/*
-	@ Direction (angle)
+	*/
+	virtual void Stop();
+	/*
+	@ Direction (rad)
 	@ Velocity
 	*/
-	void MoveLeft(const float &direction = 0.0f, const int &velocity = 100);
-	/*
-	@ Direction (angle)
-	@ Velocity
-	*/
-	void MoveRight(const float &direction = 0.0f, const int &velocity = 100);
-	/*
-	*/
-	void Stop();
-	/*
-	@ Direction (angle)
-	@ Velocity
-	*/
-	void RotateConveyor(const float &direction);
+	virtual void RotateConveyor(const float &direction);
 	/*
 	@ Velocity
 	*/
-	void Put(const int &velocity = default_velocity);
+	virtual void Put(const int &velocity = default_velocity);
 
-	// Ros
+
+
+// Ros
 private:
 	void InitialRos();
-	void Sub();
-	void ActionCallBack(const std_msgs::Float32MultiArray &msg);
+	void SubPos();
 	void PosCallBack(const geometry_msgs::PoseStamped &msg);
 
-public:
-	void CheckData();
-	int GetAction();
 
-	// Properties
+
+// Properties
 public:
 	static AGV *getAGV(const string &node_name, const string &agent_name);
-	~AGV() { inst_ = nullptr; };
-	static const int default_velocity;
+	~AGV();
 
 private:
 	AGV(const string &node_name, const string &agent_name);
 	static AGV *inst_;
 
-	const unsigned char wheel_L;
-	const unsigned char wheel_R;
-	const unsigned char Conveyor_R;
-	const unsigned char Conveyor;
-	const float wheel_radius;
-	const float VEL2METER_MS;
-	const float ACCEL2METER_MS2;
-	const float kWheelBase_2;
-	const float kAxle_2; // 輪距
-	const int max_velocity;
+	ros::Subscriber sub_pos;
+	thread thread_sub_pos;
+	bool delete_thread_pos = false;
 
-	float x, y, oz = 0;
-	float threshold = 0.02;
+
+	float x, y, oz;
+	const float threshold;
 	const float Kp;
 	const float Ki;
 	const float Kd;
 	const float Koz;
 	const float dt;
 
-	vector<vector<float>> action = {};
-	const int idx;
-	const string agent_name;
-	ros::NodeHandle n;
-	ros::Subscriber sub_a;
-	ros::Subscriber sub_pos;
-	thread thread_sub;
 	bool thread_break = false;
 };

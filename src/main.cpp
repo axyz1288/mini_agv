@@ -15,17 +15,17 @@ int main(int argc, char *argv[])
         else if(type == 1)
             thread* forward = new thread(&AGV::MoveForward, car, 0.5f, 150);
         else if(type == 2)
-            thread* backward = new thread(&AGV::MoveBackward, car, 0.5f, -150);
+            thread* backward = new thread(&AGV::MoveBackward, car, 0.5f, 150);
         else if(type == 3)
-            thread* left = new thread(&AGV::MoveLeft, car, M_PI_2, 150);
+            thread* left = new thread(&AGV::RotateLeft, car, M_PI_2, 100);
         else if(type == 4)
-            thread* right = new thread(&AGV::MoveRight, car, M_PI_2, 150);
+            thread* right = new thread(&AGV::RotateRight, car, M_PI_2, 100);
         else if(type == 6)
             car->Put();
         else
         {
             cout << "Out of action space" << endl;
-            return -1;
+            break;
         }
     }
     return 0;
