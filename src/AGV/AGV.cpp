@@ -22,7 +22,12 @@ AGV::AGV(const string &node_name, const string &agent_name)
       kWheelBase_2(0.075),
       max_velocity(210),
       idx(atoi(&node_name[3])),
-      agent_name(agent_name)
+      agent_name(agent_name),
+      Kp(1.2),
+      Ki(0.5),
+      Kd(0.1),
+      Koz(0.1),
+      dt(0.01)
 {
     SetMotor_CenterScale(Conveyor_R, 2080);
     SetAllMotorsAccel(10);
@@ -38,82 +43,94 @@ AGV::AGV(const string &node_name, const string &agent_name)
 /* 
 Control
 */
-void AGV::Move(const float target_x, const float target_y, const float target_oz, const int target_velocity)
+void AGV::Move(const float target_x, const float target_y, const float target_oz, const int &target_velocity)
 {
-    SetMotor_TorqueEnable(wheel_L, true);
-    SetMotor_TorqueEnable(wheel_R, true);
+    // do
+    // {
+    //     Move(target_x, target_y, target_velocity);
+    //     Move(target_oz, target_velocity);
+    //     if (thread_break)
+    //         break;
+    // } while (abs(target_x - x) > threshold || abs(target_y - y) > threshold || abs(target_oz - oz));
+    Move(target_x, target_y, target_velocity);
+    Move(target_oz, target_velocity);
+    cout << target_x - x << "   " << target_y - y << "   " << target_oz - oz << endl;
+}
 
-    float delta_x, delta_y, delta_oz;
-    float sum_delta_x, sum_delta_y, sum_delta_oz;
-    delta_x = delta_y = delta_oz = 0;
-    sum_delta_x = sum_delta_y = sum_delta_oz = 0;
-
-    const float Kp = 1.5;
-    const float Ki = 0.2;
-    const float Koz = 0.2;
-    const float dt = 0.01;
+void AGV::Move(const float target_x, const float target_y, const int &target_velocity)
+{
+    float err_x, err_y;
+    float sum_err_x, sum_err_y;
+    float diff_err_x, diff_err_y;
+    err_x = err_y = 0;
+    sum_err_x = sum_err_y = 0;
+    diff_err_x = diff_err_y = 0;
 
     do
     {
-        delta_x = target_x - x;
-        delta_y = target_y - y;
-        
-        if (abs(delta_x) < threshold) delta_x = 0;
-        if (abs(delta_y) < threshold) delta_y = 0;
-        
-        sum_delta_x += delta_x * dt;
-        sum_delta_y += delta_y * dt;
-        
-        const double velocity_x = target_velocity * (Kp * delta_x  + Ki * sum_delta_x);
-        const double velocity_y = target_velocity * (Kp * delta_y  + Ki * sum_delta_y);
-        const double velocity_oz = atan2(velocity_y , velocity_x);
+        diff_err_x = ((target_x - x) - err_x) / dt;
+        diff_err_y = ((target_y - y) - err_y) / dt;
+        err_x = target_x - x;
+        err_y = target_y - y;
+        sum_err_x += err_x * dt;
+        sum_err_y += err_y * dt;
+
+        const double velocity_x = target_velocity * (Kp * err_x + Ki * sum_err_x + Kd * diff_err_x);
+        const double velocity_y = target_velocity * (Kp * err_y + Ki * sum_err_y + Kd * diff_err_y);
+        const double velocity_oz = atan2(velocity_y, velocity_x);
 
         int velocity = abs(velocity_y) / sin(velocity_oz);
-        if (sin(velocity_oz) == 0) velocity = velocity_x;
+        if (sin(velocity_oz) == 0)
+            velocity = velocity_x;
+
+        cout << "XY Error: " << err_x << "   " << err_y << endl;
+        cout << "XY Velocity: " << velocity << endl;
 
         // velocity clamp
         if (abs(velocity) > max_velocity)
             velocity = copysignf(0, velocity);
-
-        // cout << "XY Delta: " << delta_x << "   " << delta_y << endl;
-        // cout << "XY Velocity: " << velocity << endl;
+        if (thread_break)
+            break;
 
         SetMotor_Velocity(wheel_L, velocity);
         SetMotor_Velocity(wheel_R, -velocity);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
-        if (thread_break) break;
-    } while (abs(delta_x) > threshold || abs(delta_y) > threshold);
+    } while (abs(err_x) > threshold || abs(err_y) > threshold);
     Stop();
+}
+
+void AGV::Move(const float target_oz, const int &target_velocity)
+{
+    float err_oz = 0;
+    float sum_err_oz = 0;
+    float diff_err_oz = 0;
 
     do
     {
-        delta_oz = target_oz - oz;
-        if (abs(delta_oz) < threshold) delta_oz = 0;
-        sum_delta_oz += delta_oz * dt;
-        int diff_velocity = Koz * target_velocity * (Kp * delta_oz + Ki * sum_delta_oz);
+        diff_err_oz = ((target_oz - oz) - err_oz) / dt;
+        err_oz = target_oz - oz;
+        sum_err_oz += err_oz * dt;
+        int diff_velocity = Koz * target_velocity * (Kp * err_oz + Ki * sum_err_oz + Kd * diff_err_oz);
+
+        cout << "Oz Error: " << err_oz << "   " << target_oz << "   " << oz << endl;
+        cout << "Oz Velocity: " << diff_velocity << endl;
 
         // velocity clamp
         if (abs(diff_velocity) > 0.5 * max_velocity)
             diff_velocity = copysignf(0, diff_velocity);
-
-        // cout << "Oz Delta: " << delta_oz << endl;
-        // cout << "Oz Velocity: " << diff_velocity << endl;
+        if (thread_break)
+            break;
 
         SetMotor_Velocity(wheel_L, -diff_velocity);
         SetMotor_Velocity(wheel_R, -diff_velocity);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
-        if (thread_break) break;
-    } while (abs(delta_oz) > threshold);
+    } while (abs(err_oz) > threshold);
     Stop();
 }
 
 void AGV::MoveForward(const float &distance, const int &velocity)
 {
-    if (oz >= -M_PI_4 and oz < M_PI_4)
-        Move(x + distance, y, oz, abs(velocity));
-    else if (oz >= M_PI_4 and oz < 3 * M_PI_4)
-        Move(x, y + distance, oz, abs(velocity));
-    else if (oz >= -3 * M_PI_4 and oz < -M_PI_4)
+    if (abs(oz) >= M_PI_4 and abs(oz) < 3 * M_PI_4)
         Move(x, y + distance, oz, abs(velocity));
     else
         Move(x + distance, y, oz, abs(velocity));
@@ -143,16 +160,14 @@ void AGV::Stop()
     thread_break = false;
 }
 
-void AGV::RotateConveyor(const float &direction, const int &velocity)
+void AGV::RotateConveyor(const float &direction)
 {
-    if (abs(velocity) > max_velocity)
-        SetMotor_Velocity(Conveyor_R, copysignf(max_velocity, velocity));
     SetMotor_Angle(Conveyor_R, direction);
 }
 
 void AGV::Put(const int &velocity)
 {
-    SetMotor_Velocity(Conveyor, velocity);
+    SetMotor_Velocity(Conveyor, -velocity);
     this_thread::sleep_for(std::chrono::seconds(3));
     SetMotor_Velocity(Conveyor, 0);
 }
@@ -162,18 +177,12 @@ Ros
 */
 void AGV::InitialRos()
 {
-    thread_sub_a = thread(&AGV::SubAction, this);
-    thread_sub_pos = thread(&AGV::SubPos, this);
+    thread_sub = thread(&AGV::Sub, this);
 }
 
-void AGV::SubAction()
+void AGV::Sub()
 {
     sub_a = n.subscribe('/' + agent_name + "/action", 0, &AGV::ActionCallBack, this);
-    ros::spin();
-}
-
-void AGV::SubPos()
-{
     sub_pos = n.subscribe("/orb_slam2_rgbd/pose", 0, &AGV::PosCallBack, this);
     ros::spin();
 }

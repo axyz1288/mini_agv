@@ -8,16 +8,28 @@
 #include <tf/LinearMath/Matrix3x3.h>
 #include <thread>
 
-class AGV: public MotorUnion
+class AGV : public MotorUnion
 {
-// Control
-public:	
+	// Control
+public:
 	/*
-	@ target_x, 
-	@ target_y, 
-	@ target_oz
+	@ target_x,
+	@ target_y,
+	@ target_oz,
+	@ target_velocity
 	*/
-	void Move(const float target_x, const float target_y, const float target_oz, const int target_velocity=default_velocity);
+	void Move(const float target_x, const float target_y, const float target_oz, const int &target_velocity = default_velocity);
+	/*
+	@ target_x,
+	@ target_y,
+	@ target_velocity
+	*/
+	void Move(const float target_x, const float target_y, const int &target_velocity = default_velocity);
+	/*
+	@ target_oz,
+	@ target_velocity
+	*/
+	void Move(const float target_oz, const int &target_velocity = default_velocity);
 	/*
 	@ Distance
 	@ Velocity
@@ -45,32 +57,29 @@ public:
 	@ Direction (angle)
 	@ Velocity
 	*/
-	void RotateConveyor(const float &direction = 0.0f, const int &velocity = default_velocity);
+	void RotateConveyor(const float &direction);
 	/*
 	@ Velocity
 	*/
 	void Put(const int &velocity = default_velocity);
 
-
-
-// Ros
+	// Ros
 private:
 	void InitialRos();
-	void SubAction();
-	void SubPos();
+	void Sub();
 	void ActionCallBack(const std_msgs::Float32MultiArray &msg);
 	void PosCallBack(const geometry_msgs::PoseStamped &msg);
+
 public:
 	void CheckData();
 	int GetAction();
 
-
-
-// Properties
+	// Properties
 public:
-    static AGV *getAGV(const string &node_name, const string &agent_name);
-    ~AGV() { inst_ = nullptr; };
+	static AGV *getAGV(const string &node_name, const string &agent_name);
+	~AGV() { inst_ = nullptr; };
 	static const int default_velocity;
+
 private:
 	AGV(const string &node_name, const string &agent_name);
 	static AGV *inst_;
@@ -86,16 +95,20 @@ private:
 	const float kAxle_2; // 輪距
 	const int max_velocity;
 
-	float x, y, oz = 0; 
-	float threshold = 0.05;
-	
+	float x, y, oz = 0;
+	float threshold = 0.02;
+	const float Kp;
+	const float Ki;
+	const float Kd;
+	const float Koz;
+	const float dt;
+
 	vector<vector<float>> action = {};
 	const int idx;
 	const string agent_name;
 	ros::NodeHandle n;
 	ros::Subscriber sub_a;
 	ros::Subscriber sub_pos;
-	thread thread_sub_a;
-	thread thread_sub_pos;
+	thread thread_sub;
 	bool thread_break = false;
 };
