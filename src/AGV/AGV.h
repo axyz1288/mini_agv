@@ -2,7 +2,7 @@
 #include "./Car/Car.h"
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
-#include <geometry_msgs/PoseStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Quaternion.h>
 #include <tf/transform_datatypes.h>
 #include <tf/LinearMath/Matrix3x3.h>
@@ -69,7 +69,7 @@ public:
 private:
 	void InitialRos();
 	void SubPos();
-	void PosCallBack(const geometry_msgs::PoseStamped &msg);
+	void PosCallBack(const nav_msgs::Odometry &msg);
 
 
 

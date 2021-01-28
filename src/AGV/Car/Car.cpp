@@ -52,18 +52,18 @@ void Car::Move(const int &velocity_L, const int &velocity_R, const float &distan
 
     // velocity clamp
     if (fabs(velocity_L) > max_velocity)
-        tmp_velocity_L = copysignf(0, velocity_L);
+        tmp_velocity_L = copysignf(max_velocity, velocity_L);
     if (fabs(velocity_R) > max_velocity)
-        tmp_velocity_R = copysignf(0, velocity_R);
+        tmp_velocity_R = copysignf(max_velocity, velocity_R);
 
     if (distance == 0)
     {
-        SetMotor_Velocity(wheel_L, tmp_velocity_L);
-        SetMotor_Velocity(wheel_R, tmp_velocity_R);
         if (!GetMotor_TorqueEnable(wheel_L))
             SetMotor_TorqueEnable(wheel_L, true);
         if (!GetMotor_TorqueEnable(wheel_R))
             SetMotor_TorqueEnable(wheel_R, true);
+        SetMotor_Velocity(wheel_L, tmp_velocity_L);
+        SetMotor_Velocity(wheel_R, tmp_velocity_R);
     }
     else
     {

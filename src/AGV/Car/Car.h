@@ -13,7 +13,7 @@ public:
 	@ Wheel_R_Velocity, 
 	@ Distance
 	*/
-	void Move(const int &velocity_L, const int &velocity_R, const float &distance);
+	void Move(const int &velocity_L, const int &velocity_R, const float &distance = 0.0f);
     /*
 	@ Direction (rad)
 	@ Distance
