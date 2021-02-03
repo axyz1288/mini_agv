@@ -30,11 +30,11 @@ spec:
         - containerPort: 11311
         resources:
           requests:
-            memory: "100M"
-            cpu: "0.5"
-          limits:
-            memory: "500M"
+            memory: "100Mi"
             cpu: "1"
+          limits:
+            memory: "1.5Gi"
+            cpu: "4"
         volumeMounts:
         - name: dev
           mountPath: /dev
@@ -53,7 +53,7 @@ spec:
           value: $(MY_NODE_IP)
         - name: ROS_MASTER_URI
           value: http://192.168.50.193:11311
-        args: ["$(MY_NODE_NAME)", "gacomm"]
+        args: ["~/car/build/car", "$(MY_NODE_NAME)", "gacomm"]
       volumes:
       - name: dev
         persistentVolumeClaim:
