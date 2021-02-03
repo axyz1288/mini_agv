@@ -195,7 +195,7 @@ void Car::CheckData()
         this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
-int Car::GetAction()
+const int Car::GetAction()
 {
     return int(action.at(idx).at(0));
 }

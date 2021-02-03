@@ -188,3 +188,13 @@ void AGV::PosCallBack(const nav_msgs::Odometry &msg)
     tf::Matrix3x3(quat).getRPY(roll, pitch, yaw);
     oz = yaw;
 }
+
+void AGV::CheckData()
+{
+    Car::CheckData();
+}
+
+const int AGV::GetAction()
+{
+    return Car::GetAction();
+}

@@ -70,7 +70,9 @@ private:
 	void InitialRos();
 	void SubPos();
 	void PosCallBack(const nav_msgs::Odometry &msg);
-
+public:
+	void CheckData();
+	const int GetAction();
 
 
 // Properties

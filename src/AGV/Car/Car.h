@@ -67,7 +67,7 @@ private:
 	void ActionCallBack(const std_msgs::Float32MultiArray &msg);
 public:
 	void CheckData();
-	int GetAction();
+	const int GetAction();
 
 
 

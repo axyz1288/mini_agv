@@ -7,15 +7,15 @@ int main(int argc, char *argv[])
     AGV *car = AGV::getAGV(argv[1], argv[2]);
     while(ros::ok)
     {
-        // car->CheckData();
         int type;
         cin >> type;
+        // car->CheckData();
         if(type == 0 || type == 5)
             car->Stop();
         else if(type == 1)
-            thread* forward = new thread(&AGV::MoveForward, car, 0.5f, 150);
+            thread* forward = new thread(&AGV::MoveForward, car, 0.5f, 100);
         else if(type == 2)
-            thread* backward = new thread(&AGV::MoveBackward, car, 0.5f, 150);
+            thread* backward = new thread(&AGV::MoveBackward, car, 0.5f, 100);
         else if(type == 3)
             thread* left = new thread(&AGV::RotateLeft, car, M_PI_2, 100);
         else if(type == 4)
