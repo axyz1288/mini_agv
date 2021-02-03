@@ -14,6 +14,7 @@ spec:
       runAsUser: 1000
     ports:
     - containerPort: 11311
+      hostPort: 11311
 
   - name: pybullet
     image: axyz1288/aidocker:pybullet

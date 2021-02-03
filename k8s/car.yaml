@@ -19,6 +19,7 @@ spec:
     spec:
       nodeSelector:
         agent: car
+      hostNetwork: true
       containers:
       - name: car
         image: axyz1288/car
@@ -29,25 +30,30 @@ spec:
         - containerPort: 11311
         resources:
           requests:
-            memory: "10M"
-            cpu: "0.1"
+            memory: "100M"
+            cpu: "0.5"
           limits:
             memory: "500M"
             cpu: "1"
         volumeMounts:
         - name: dev
           mountPath: /dev
+        - name: car
+          mountPath: /home/aiRobots
         env:
         - name: MY_NODE_NAME
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
         - name: ROS_HOSTNAME
-          value: MY_NODE_NAME
+          value: $(MY_NODE_NAME)
         - name: ROS_MASTER_URI
-          value: http://master:11311
-        args: ["~/car/build/car", "$(MY_NODE_NAME)", "gas"]
+          value: http://192.168.50.193:11311
+        args: ["$(MY_NODE_NAME)", "gacomm"]
       volumes:
       - name: dev
         persistentVolumeClaim:
           claimName: dev
+      - name: car
+        persistentVolumeClaim:
+          claimName: car
