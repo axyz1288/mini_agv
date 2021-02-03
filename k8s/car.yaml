@@ -45,8 +45,12 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
-        - name: ROS_HOSTNAME
-          value: $(MY_NODE_NAME)
+        - name: MY_NODE_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.hostIP
+        - name: ROS_IP
+          value: $(MY_NODE_IP)
         - name: ROS_MASTER_URI
           value: http://192.168.50.193:11311
         args: ["$(MY_NODE_NAME)", "gacomm"]
