@@ -5,5 +5,5 @@ set(CMAKE_BUILD_TYPE Debug)
 
 add_subdirectory(AGV)
 
-add_executable(car main.cpp)
-target_link_libraries(car AGV)
+add_executable(agv main.cpp)
+target_link_libraries(agv AGV)

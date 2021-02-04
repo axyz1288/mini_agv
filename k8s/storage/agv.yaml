@@ -17,7 +17,7 @@ spec:
       - matchExpressions:
         - key: agent
           operator: In
-          values: [car]
+          values: [agv]
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -33,11 +33,11 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: car
+  name: agv
 spec:
   storageClassName: local-storage
   local:
-    path: /home/car/aiRobots
+    path: /home/agv/aiRobots
   capacity:
     storage: 1Gi
   volumeMode: Filesystem
@@ -49,12 +49,12 @@ spec:
       - matchExpressions:
         - key: agent
           operator: In
-          values: [car]
+          values: [agv]
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: car
+  name: agv
 spec:
   storageClassName: local-storage
   accessModes: [ReadWriteMany]

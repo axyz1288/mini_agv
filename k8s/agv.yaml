@@ -1,13 +1,13 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: car
+  name: agv
   labels:
-    app: car
+    app: agv
 spec:
   selector:
     matchLabels:
-      app: car
+      app: agv
   updateStrategy:
     type: RollingUpdate
     rollingUpdate:
@@ -15,14 +15,14 @@ spec:
   template:
     metadata:
       labels:
-        app: car
+        app: agv
     spec:
       nodeSelector:
-        agent: car
+        agent: agv
       hostNetwork: true
       containers:
-      - name: car
-        image: axyz1288/car
+      - name: agv
+        image: axyz1288/agv
         securityContext:
           runAsUser: 1000
           privileged: true
@@ -38,7 +38,7 @@ spec:
         volumeMounts:
         - name: dev
           mountPath: /dev
-        - name: car
+        - name: agv
           mountPath: /home/aiRobots
         env:
         - name: MY_NODE_NAME
@@ -53,11 +53,11 @@ spec:
           value: $(MY_NODE_IP)
         - name: ROS_MASTER_URI
           value: http://192.168.50.193:11311
-        args: ["~/car/build/car", "$(MY_NODE_NAME)", "gacomm"]
+        args: ["~/mini_agv/build/agv", "$(MY_NODE_NAME)", "gacomm"]
       volumes:
       - name: dev
         persistentVolumeClaim:
           claimName: dev
-      - name: car
+      - name: agv
         persistentVolumeClaim:
-          claimName: car
+          claimName: agv
