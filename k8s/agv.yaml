@@ -28,6 +28,7 @@ spec:
           privileged: true
         ports:
         - containerPort: 11311
+        # hostport is useless, because l4t kernel didn't support iptable.
         resources:
           requests:
             memory: "100Mi"
