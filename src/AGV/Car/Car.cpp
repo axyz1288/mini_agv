@@ -19,7 +19,7 @@ Car::Car(const string &node_name, const string &agent_name)
       VEL2METER_MS(GetMotor_Scale2RPM(wheel_L) * (1.667 * 1e-5) * 2 * M_PI * wheel_radius),
       ACCEL2METER_MS2(GetMotor_Scale2RPMM(wheel_L) * pow(1.667 * 1e-5, 2) * 2 * M_PI * wheel_radius),
       kAxle_2(0.130),
-      kWheelBase_2(0.075),
+      kWheelBase_2(0.1),
       max_velocity(210),
       idx(atoi(&node_name[3])),
       agent_name(agent_name)

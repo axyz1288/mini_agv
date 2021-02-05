@@ -10,9 +10,9 @@ AGV *AGV::getAGV(const string &node_name, const string &agent_name)
 
 AGV::AGV(const string &node_name, const string &agent_name)
     : Car(node_name, agent_name),
-      Kp(1.2),
-      Ki(0.5),
-      Kd(0.01),
+      Kp(1.5),
+      Ki(0.2),
+      Kd(0.04),
       Koz(1),
       dt(0.01),
       threshold(0.02)
@@ -39,40 +39,37 @@ void AGV::Move(const float target_x, const float target_y, const float target_oz
 
 void AGV::Move(const float target_x, const float target_y, const int &target_velocity)
 {   
+    float abs_err_x, abs_err_y;
     float err_x, err_y, err_oz;
     float sum_err_x, sum_err_y, sum_err_oz;
     float diff_err_x, diff_err_y, diff_err_oz;
-    sum_err_x = sum_err_y = sum_err_oz = 0;
-    diff_err_x = diff_err_y = diff_err_oz = 0;
+    abs_err_x = abs_err_y = 0;
+    err_x = err_y = err_oz = 0;
+    sum_err_x = sum_err_y = 0;
+    diff_err_x = diff_err_y  = 0;
 
-    err_x = target_x - x;
-    err_y = target_y - y;
-    float distance = sqrt(pow(err_x, 2) + pow(err_y, 2));
-    float target_oz = atan2(err_y, err_x);
-    Rotate(target_oz + copysignf(0.015, target_oz), target_velocity);
-    Car::Move(target_velocity, -target_velocity, 0.3 * distance);
+    abs_err_x = target_x - x;
+    abs_err_y = target_y - y;
+    float distance = sqrt(pow(abs_err_x, 2) + pow(abs_err_y, 2));
+    const float target_oz = atan2(abs_err_y, abs_err_x);
+    Rotate(target_oz - 0.015, target_velocity);
 
     do
     {
-        diff_err_x = ((target_x - x) - err_x) / dt;
-        diff_err_y = ((target_y - y) - err_y) / dt;
-        diff_err_oz = ((target_oz - oz) - err_oz) / dt;
-        err_x = target_x - x;
-        err_y = target_y - y;
-        distance = sqrt(pow(err_x, 2) + pow(err_y, 2));
-        target_oz = atan2(err_y, err_x);
-        err_oz = target_oz - oz;
-        if (abs(err_oz) > 3 * M_PI_2)
-            err_oz = copysignf(2 * M_PI - abs(err_oz), -err_oz);
+        abs_err_x = (target_x - x);
+        abs_err_y = (target_y - y);
+        distance = sqrt(pow(abs_err_x, 2) + pow(abs_err_y, 2));
+        err_oz = atan2(abs_err_y, abs_err_x) - oz;
+        diff_err_x = ((distance * cos(err_oz)) - err_x) / dt;
+        diff_err_y = ((distance * sin(err_oz)) - err_y) / dt;
+        err_x = distance * cos(err_oz);
+        err_y = distance * sin(err_oz);
         sum_err_x += err_x * dt;
         sum_err_y += err_y * dt;
-        sum_err_oz += err_oz * dt;
         
         const float velocity_x = target_velocity * (Kp * err_x + Ki * sum_err_x + Kd * diff_err_x);
         const float velocity_y = target_velocity * (Kp * err_y + Ki * sum_err_y + Kd * diff_err_y);
-        const float velocity_oz = (Kp * err_oz + Ki * sum_err_oz + Kd * diff_err_oz);
-        int velocity = sqrt(pow(velocity_x, 2) + pow(velocity_y, 2));
-        velocity = copysignf(velocity, velocity_x * cos(oz) * velocity_y * sin(oz));
+        const int velocity = copysignf(sqrt(pow(velocity_x, 2) + pow(velocity_y, 2)), velocity_x);
 
         cout << "Error: " << err_x << "   " << err_y << "   " << err_oz << endl;
         cout << "Velocity: " << velocity << endl;
@@ -80,7 +77,7 @@ void AGV::Move(const float target_x, const float target_y, const int &target_vel
         if (thread_break)
             break;
         
-        Car::MoveDirection(velocity_oz, 0.0f, velocity);
+        Car::MoveDirection(target_oz - oz, 0.0f, velocity);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_x) > threshold || abs(err_y) > threshold);
     Stop();
@@ -124,7 +121,7 @@ void AGV::Rotate(float target_oz, const int &target_velocity)
 
         Car::Move(-diff_velocity, -diff_velocity, 0.0f);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
-    } while (abs(err_oz) > 0.2 * threshold);
+    } while (abs(err_oz) > threshold);
     Stop();
 }
 
