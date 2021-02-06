@@ -16,50 +16,54 @@ public:
 	@ target_x,
 	@ target_y,
 	@ target_oz,
-	@ target_velocity
+	@ speed
 	*/
-	void Move(const float target_x, const float target_y, const float target_oz, const int &target_velocity = Car::default_velocity);
+	void Move(const float target_x, const float target_y, const float target_oz, const int &speed = Car::default_velocity);
 	/*
 	@ target_x,
 	@ target_y,
-	@ target_velocity
+	@ speed
 	*/
-	void Move(const float target_x, const float target_y, const int &target_velocity = Car::default_velocity);
+	void Move(const float target_x, const float target_y, const int &speed = Car::default_velocity);
 	/*
-	@ Distance
-	@ Velocity
+	@ distance
+	@ speed
 	*/
-	virtual void MoveForward(const float distance = 0.0f, const int &velocity = Car::default_velocity);
+	virtual void MoveForward(const float distance = 0.0f, const int &speed = Car::default_velocity);
 	/*
-	@ Distance
-	@ Velocity
+	@ distance
+	@ speed
 	*/
-	virtual void MoveBackward(const float distance = 0.0f, const int &velocity = Car::default_velocity);
+	virtual void MoveBackward(const float distance = 0.0f, const int &speed = Car::default_velocity);
 	/*
 	@ target_oz (rad)
-	@ target_velocity
+	@ speed
 	*/
-	virtual void Rotate(float target_oz, const int &target_velocity = Car::default_velocity);
+	virtual void Rotate(float target_oz, const int &speed = Car::default_velocity);
 	/*
-	@ Direction (rad)
-	@ Velocity
+	@ direction (rad)
+	@ speed
 	*/
-	virtual void RotateLeft(const float direction = 0.0f, const int &velocity = 100);
+	virtual void RotateLeft(const float direction = 0.0f, const int &speed = 100);
 	/*
-	@ Direction (rad)
-	@ Velocity
+	@ direction (rad)
+	@ speed
 	*/
-	virtual void RotateRight(const float direction = 0.0f, const int &velocity = 100);
+	virtual void RotateRight(const float direction = 0.0f, const int &speed = 100);
+	/*
+	@ direction (rad)
+	@ speed
+	*/
+	void Selfturn(const float direction = 0.0f, const int &speed = 100);
 	/*
 	*/
 	virtual void Stop();
 	/*
-	@ Direction (rad)
-	@ Velocity
+	@ direction (rad)
 	*/
 	virtual void RotateConveyor(const float &direction);
 	/*
-	@ Velocity
+	@ velocity
 	*/
 	virtual void Put(const int &velocity = default_velocity);
 

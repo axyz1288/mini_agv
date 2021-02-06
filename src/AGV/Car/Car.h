@@ -22,35 +22,34 @@ public:
 	void MoveDirection(const float &direction, const float &distance = 0.0f, const int &velocity = default_velocity);
 	/*
 	@ Distance
-	@ Velocity
+	@ Speed
 	*/
-	virtual void MoveForward(const float &distance = 0.0f, const int &velocity = default_velocity);
+	virtual void MoveForward(const float &distance = 0.0f, const int &speed = default_velocity);
 	/*
 	@ Distance
-	@ Velocity
+	@ Speed
 	*/
-	virtual void MoveBackward(const float &distance = 0.0f, const int &velocity = default_velocity);
+	virtual void MoveBackward(const float &distance = 0.0f, const int &speed = default_velocity);
 	/*
 	@ Direction (rad)
-	@ Velocity
+	@ Speed
 	*/
-	virtual void Rotate(const float &direction = 0.0f, const int &velocity = 100);
+	virtual void Rotate(const float &direction = 0.0f, const int &speed = 100);
 	/*
 	@ Direction (rad)
-	@ Velocity
+	@ Speed
 	*/
-	virtual void RotateLeft(const float &direction = 0.0f, const int &velocity = 100);
+	virtual void RotateLeft(const float &direction = 0.0f, const int &speed = 100);
 	/*
 	@ Direction (rad)
-	@ Velocity
+	@ Speed
 	*/
-	virtual void RotateRight(const float &direction = 0.0f, const int &velocity = 100);
+	virtual void RotateRight(const float &direction = 0.0f, const int &speed = 100);
 	/*
 	*/
 	virtual void Stop();
 	/*
 	@ Direction (rad)
-	@ Velocity
 	*/
 	virtual void RotateConveyor(const float &direction);
 	/*
@@ -88,7 +87,7 @@ protected:
 	thread thread_sub_a;
 	bool delete_thread_a = false;
 
-private:
+protected:
 	const unsigned char wheel_L;
 	const unsigned char wheel_R;
 	const unsigned char Conveyor_R;

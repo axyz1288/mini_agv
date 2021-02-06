@@ -24,12 +24,12 @@ Car::Car(const string &node_name, const string &agent_name)
       idx(atoi(&node_name[3])),
       agent_name(agent_name)
 {
-    SetMotor_CenterScale(Conveyor_R, 2080);
     SetAllMotorsAccel(10);
     SetMotor_Operating_Mode(wheel_L, 1);
     SetMotor_Operating_Mode(wheel_R, 1);
     SetMotor_Operating_Mode(Conveyor, 1);
-    SetMotor_Velocity(Conveyor_R, 50);
+    SetMotor_Velocity(Conveyor_R, 10);
+    SetMotor_Angle(Conveyor_R, 0);
     SetAllMotorsTorqueEnable(true);
 
     InitialRos();
@@ -104,45 +104,42 @@ void Car::Move(const int &velocity_L, const int &velocity_R, const float &distan
 
 void Car::MoveDirection(const float &direction, const float &distance, const int &velocity)
 {
-    float tmp_angle = direction;
-    int tmp_velocity = velocity;
-
     // Calculate Ackermann steering model:
     // this radius is circle center to center of back wheel
-    const float radius = kWheelBase_2 / tan(tmp_angle + 1e-10);
-
+    const float radius = kWheelBase_2 / tan(direction + 1e-10);
     const float left_radius = radius - kAxle_2;
     const float right_radius = radius + kAxle_2;
-    float left_velocity = left_radius / radius * tmp_velocity;
-    float right_velocity = right_radius / radius * tmp_velocity;
+    float left_velocity = left_radius / radius * velocity;
+    float right_velocity = right_radius / radius * velocity;
 
     Move(int(left_velocity), -int(right_velocity), distance);
 }
 
-void Car::MoveForward(const float &distance, const int &velocity)
+void Car::MoveForward(const float &distance, const int &speed)
 {
-    Move(abs(velocity), -abs(velocity), distance);
+    Move(abs(speed), -abs(speed), distance);
 }
 
-void Car::MoveBackward(const float &distance, const int &velocity)
+void Car::MoveBackward(const float &distance, const int &speed)
 {
-    Move(-abs(velocity), abs(velocity), distance);
+    Move(-abs(speed), abs(speed), distance);
 }
 
-void Car::Rotate(const float &direction, const int &velocity)
+void Car::Rotate(const float &direction, const int &speed)
 {
-    float distance = kAxle_2 * direction;
-    Move(-velocity, -velocity, abs(distance));
+    const float distance = kAxle_2 * abs(direction);
+    const int velocity = copysignf(abs(speed), -direction); 
+    Move(velocity, velocity, distance);
 }
 
-void Car::RotateLeft(const float &direction, const int &velocity)
+void Car::RotateLeft(const float &direction, const int &speed)
 {
-    Rotate(abs(direction), abs(velocity));
+    Rotate(abs(direction), speed);
 }
 
-void Car::RotateRight(const float &direction, const int &velocity)
+void Car::RotateRight(const float &direction, const int &speed)
 {
-    Rotate(abs(direction), -abs(velocity));
+    Rotate(-abs(direction), speed);
 }
 
 void Car::Stop()
