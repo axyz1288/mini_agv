@@ -55,7 +55,7 @@ spec:
     volumeMounts:
     - name: pytorch
       mountPath: /home/aiRobots
-    args: ["/bin/python3", "./MARL/main.py", "--dir=./MARL", "-E=AGV", "-A=gas", "--load-model=60000", "--training=False"]
+    args: ["/bin/python3", "./MARL/mini_agv/main.py", "-E=AGV", "-A=gas", "--load-model=41000"]
 
   volumes:
   - name: x11
