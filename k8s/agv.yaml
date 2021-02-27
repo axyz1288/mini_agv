@@ -39,13 +39,7 @@ spec:
         volumeMounts:
         - name: dev
           mountPath: /dev
-        - name: agv
-          mountPath: /home/aiRobots
         env:
-        - name: MY_NODE_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: spec.nodeName
         - name: MY_NODE_IP
           valueFrom:
             fieldRef:
@@ -54,11 +48,8 @@ spec:
           value: $(MY_NODE_IP)
         - name: ROS_MASTER_URI
           value: http://192.168.50.193:11311
-        args: ["~/mini_agv/build/agv", "$(MY_NODE_NAME)", "gacomm"]
+        args: ["~/mini_agv/build/agv", "$(MY_NODE_IP)", "gacomm"]
       volumes:
       - name: dev
         persistentVolumeClaim:
           claimName: dev
-      - name: agv
-        persistentVolumeClaim:
-          claimName: agv
