@@ -9,7 +9,7 @@
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/agv",
-            "args": ["agv5", "gas"],
+            "args": ["192.168.50.249", "gas"],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
             "environment": [],
