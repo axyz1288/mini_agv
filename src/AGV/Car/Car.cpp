@@ -28,7 +28,7 @@ Car::Car(const string &node_name, const string &agent_name)
     SetMotor_Operating_Mode(wheel_L, 1);
     SetMotor_Operating_Mode(wheel_R, 1);
     SetMotor_Operating_Mode(Conveyor, 1);
-    SetMotor_Velocity(Conveyor_R, 10);
+    SetMotor_Velocity(Conveyor_R, 80);
     SetMotor_Angle(Conveyor_R, 0);
     SetAllMotorsTorqueEnable(true);
 

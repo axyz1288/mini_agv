@@ -32,6 +32,7 @@ Control
 */
 void AGV::Move(const float target_x, const float target_y, const float target_oz, const int &speed)
 {
+    Rotate(target_oz, speed);
     Move(target_x, target_y, speed);
     Rotate(target_oz, speed);
 }
@@ -87,12 +88,26 @@ void AGV::Move(const float target_x, const float target_y, const int &speed)
 
 void AGV::MoveForward(const float distance, const int &speed)
 {
-    Move(x + distance * cos(oz), y + distance * sin(oz), oz, speed);
+    const float target_oz = M_PI_2;
+    Move(x + distance * cos(target_oz), y + distance * sin(target_oz), target_oz, speed);
 }
 
 void AGV::MoveBackward(const float distance, const int &speed)
 {
-    MoveForward(-distance, speed);
+    const float target_oz = -M_PI_2;
+    Move(x + distance * cos(target_oz), y + distance * sin(target_oz), target_oz, speed);
+}
+
+void AGV::MoveLeft(const float distance, const int &speed)
+{
+    const float target_oz = M_PI;
+    Move(x + distance * cos(target_oz), y + distance * sin(target_oz), target_oz, speed);
+}
+
+void AGV::MoveRight(const float distance, const int &speed)
+{
+    const float target_oz = 0;
+    Move(x + distance * cos(target_oz), y + distance * sin(target_oz), target_oz, speed);
 }
 
 void AGV::Rotate(float target_oz, const int &speed)
@@ -166,7 +181,11 @@ void AGV::RotateConveyor(const float &direction)
 
 void AGV::Put(const int &velocity)
 {
+    const float direction = oz * Rad2Angle;
+    RotateConveyor(-direction);
+    this_thread::sleep_for(std::chrono::milliseconds(1500));
     Car::Put(velocity);
+    RotateConveyor(0);
 }
 
 

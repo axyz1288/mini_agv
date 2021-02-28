@@ -36,6 +36,16 @@ public:
 	*/
 	virtual void MoveBackward(const float distance = 0.0f, const int &speed = Car::default_velocity);
 	/*
+	@ distance
+	@ speed
+	*/
+	void MoveLeft(const float distance = 0.0f, const int &speed = Car::default_velocity);
+	/*
+	@ distance
+	@ speed
+	*/
+	void MoveRight(const float distance = 0.0f, const int &speed = Car::default_velocity);
+	/*
 	@ target_oz (rad)
 	@ speed
 	*/
