@@ -2,14 +2,14 @@
 
 const int Car::default_velocity = 150;
 Car *Car::inst_ = nullptr;
-Car *Car::getCar(const string &node_name, const string &agent_name)
+Car *Car::getCar(const string &node_name, const string &env_name, const string &agent_name)
 {
     if (inst_ == nullptr)
-        inst_ = new Car(node_name, agent_name);
+        inst_ = new Car(node_name, env_name, agent_name);
     return inst_;
 }
 
-Car::Car(const string &node_name, const string &agent_name)
+Car::Car(const string &node_name, const string &env_name, const string &agent_name)
     : MotorUnion({0, 1, 2, 3}, {"Mx106", "Mx106", "Mx106", "Mx106"}),
       wheel_L(0),
       wheel_R(1),
@@ -21,8 +21,11 @@ Car::Car(const string &node_name, const string &agent_name)
       kAxle_2(0.130),
       kWheelBase_2(0.1),
       max_velocity(210),
+      node_name(node_name),
+      env_name(env_name),
+      agent_name(agent_name),
       idx(atoi(&node_name[3])),
-      agent_name(agent_name)
+      num_agent(int((*(ros::topic::waitForMessage<std_msgs::Float32MultiArray>('/' + env_name + "/info", ros::Duration(180)))).data.at(0)))
 {
     SetAllMotorsAccel(10);
     SetMotor_Operating_Mode(wheel_L, 1);
@@ -38,8 +41,8 @@ Car::Car(const string &node_name, const string &agent_name)
 Car::~Car()
 {
     inst_ = nullptr;
-    delete_thread_a = true;
-    thread_sub_a.join();
+    delete_thread_sub = true;
+    thread_sub.join();
 }
 
 /* 
@@ -167,13 +170,14 @@ Ros
 */
 void Car::InitialRos()
 {
-    thread_sub_a = thread(&Car::SubAction, this);
+    thread_sub = thread(&Car::Sub, this);
 }
 
-void Car::SubAction()
+void Car::Sub()
 {
     sub_a = n.subscribe('/' + agent_name + "/action", 0, &Car::ActionCallBack, this);
-    while (ros::ok && !delete_thread_a)
+    sub_r = n.subscribe('/' + env_name + "/reward", 0, &Car::RewardCallBack, this);
+    while (ros::ok && !delete_thread_sub)
     {
         ros::spinOnce();
         this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -185,11 +189,22 @@ void Car::ActionCallBack(const std_msgs::Float32MultiArray &msg)
     action.push_back(msg.data);
 }
 
+void Car::RewardCallBack(const std_msgs::Float32MultiArray &msg)
+{
+    reward.push_back(msg.data);
+}
+
 void Car::CheckData()
 {
     action = {};
-    while (action.size() < 6)
+    reward = {};
+    while (action.size() < num_agent && reward.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
+    for(int i = 0; i < reward.size(); i++)
+    {
+        if(reward.at(i).at(0) < 0)
+            action.at(i).at(0) = 0;
+    }
 }
 
 const int Car::GetAction()

@@ -62,8 +62,9 @@ public:
 // Ros
 private:
 	void InitialRos();
-	void SubAction();
+	void Sub();
 	void ActionCallBack(const std_msgs::Float32MultiArray &msg);
+	void RewardCallBack(const std_msgs::Float32MultiArray &msg);
 public:
 	void CheckData();
 	const int GetAction();
@@ -72,20 +73,25 @@ public:
 
 // Properties
 public:
-    static Car *getCar(const string &node_name, const string &agent_name);
+    static Car *getCar(const string &node_name, const string &env_name, const string &agent_name);
     ~Car();
 	static const int default_velocity;
 protected:
-	Car(const string &node_name, const string &agent_name);
+	Car(const string &node_name, const string &env_name, const string &agent_name);
 	static Car *inst_;
-protected:
-	vector<vector<float>> action = {};
-	const int idx;
+	const string node_name;
+	const string env_name;
 	const string agent_name;
+	const int idx;
+	const int num_agent;
 	ros::NodeHandle n;
+private:
 	ros::Subscriber sub_a;
-	thread thread_sub_a;
-	bool delete_thread_a = false;
+	ros::Subscriber sub_r;
+	thread thread_sub;
+	bool delete_thread_sub = false;
+	vector<vector<float>> action;
+	vector<vector<float>> reward;
 
 protected:
 	const unsigned char wheel_L;
