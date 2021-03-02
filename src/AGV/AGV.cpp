@@ -209,24 +209,24 @@ void AGV::InitialMap()
     slamware_ros_sdk::SyncSetStcm srvMsg;
     boost::filesystem::ifstream ifs("/home/aiRobots/mini_agv/src/map.stcm", (std::ios_base::in | std::ios_base::binary | std::ios_base::ate));
     if (!ifs.is_open())
-        printf("Failed to open file");
+        printf("Failed to open file\n");
 
     const auto szDat = ifs.tellg();
     if (boost::filesystem::ifstream::pos_type(-1) == szDat)
-        printf("Failed to get file size.");
+        printf("Failed to get file size.\n");
     ifs.seekg(0);
 
     srvMsg.request.raw_stcm.resize(szDat);
     ifs.read((char*)srvMsg.request.raw_stcm.data(), szDat);
     if (ifs.gcount() != szDat)
-        printf("Failed to read file data.");
+        printf("Failed to read file data.\n");
 
     ros::ServiceClient client = n.serviceClient<slamware_ros_sdk::SyncSetStcm>("/slamware_ros_sdk_server_node/sync_set_stcm");
     client.waitForExistence();
     if (client.call(srvMsg))
-        printf("Succeeded in calling syncSetStcm.");
+        printf("Succeeded in calling syncSetStcm.\n");
     else
-        printf("Failed to call syncSetStcm.");
+        printf("Failed to call syncSetStcm.\n");
 }
 
 void AGV::InitialRos()
@@ -244,8 +244,8 @@ void AGV::PubDone()
 
 void AGV::Sub()
 {
-    sub_pos = n.subscribe("/slamware_ros_sdk_server_node/odom", 0, &AGV::PosCallBack, this);
-    sub_next_state = n.subscribe('/' + env_name + "/next_state", 0, &AGV::StateCallBack, this);
+    sub_pos = n.subscribe("/slamware_ros_sdk_server_node/odom", 1000, &AGV::PosCallBack, this);
+    sub_next_state = n.subscribe('/' + env_name + "/next_state", 1000, &AGV::StateCallBack, this);
     while (ros::ok && !delete_thread_sub)
     {
         ros::spinOnce();
