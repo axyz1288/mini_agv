@@ -2,11 +2,15 @@
 #include "./Car/Car.h"
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Bool.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Quaternion.h>
 #include <tf/transform_datatypes.h>
 #include <tf/LinearMath/Matrix3x3.h>
 #include <thread>
+#include <slamware_ros_sdk/SetMapUpdateRequest.h>
+#include <slamware_ros_sdk/SyncSetStcm.h>
+#include <boost/filesystem/fstream.hpp>
 
 class AGV : protected Car
 {
@@ -81,29 +85,39 @@ public:
 
 // Ros
 private:
+	void InitialMap();
 	void InitialRos();
-	void SubPos();
+	void PubDone();
+	void Sub();
 	void PosCallBack(const nav_msgs::Odometry &msg);
+	void StateCallBack(const std_msgs::Float32MultiArray &msg);
 public:
 	void CheckData();
 	const int GetAction();
+	const float GetNextX();
+	const float GetNextY();
 
 
 // Properties
 public:
-	static AGV *getAGV(const string &node_name, const string &agent_name);
+	static AGV *getAGV(const string &node_name, const string &env_name, const string &agent_name);
 	~AGV();
 
 private:
-	AGV(const string &node_name, const string &agent_name);
+	AGV(const string &node_name, const string &env_name, const string &agent_name);
 	static AGV *inst_;
 
+	ros::Publisher pub_done;
 	ros::Subscriber sub_pos;
-	thread thread_sub_pos;
-	bool delete_thread_pos = false;
+	ros::Subscriber sub_next_state;
+	thread thread_sub;
+	bool delete_thread_sub = false;
 
+	vector<vector<float>> next_state;
 
 	float x, y, oz;
+	float next_x, next_y;
+	const float map_unit;
 	const float threshold;
 	const float Kp;
 	const float Ki;
@@ -111,5 +125,5 @@ private:
 	const float Koz;
 	const float dt;
 
-	bool thread_break = false;
+	bool move_break = false;
 };

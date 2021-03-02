@@ -1,15 +1,16 @@
 #include "AGV.h"
 
 AGV *AGV::inst_ = nullptr;
-AGV *AGV::getAGV(const string &node_name, const string &agent_name)
+AGV *AGV::getAGV(const string &node_name, const string &env_name, const string &agent_name)
 {
     if (inst_ == nullptr)
-        inst_ = new AGV(node_name, agent_name);
+        inst_ = new AGV(node_name, env_name, agent_name);
     return inst_;
 }
 
-AGV::AGV(const string &node_name, const string &agent_name)
-    : Car(node_name, agent_name),
+AGV::AGV(const string &node_name, const string &env_name, const string &agent_name)
+    : Car(node_name, env_name, agent_name),
+      map_unit(0.6),
       Kp(1.5),
       Ki(0.5),
       Kd(0.06),
@@ -17,14 +18,15 @@ AGV::AGV(const string &node_name, const string &agent_name)
       dt(0.01),
       threshold(0.02)
 {
+    InitialMap();
     InitialRos();
 }
 
 AGV::~AGV()
 {
     inst_ = nullptr;
-    delete_thread_pos = true;
-    thread_sub_pos.join();
+    delete_thread_sub = true;
+    thread_sub.join();
 }
 
 /* 
@@ -75,7 +77,7 @@ void AGV::Move(const float target_x, const float target_y, const int &speed)
         cout << "Error: " << err_x << "   " << err_y << "   " << err_oz << "   " << abs_oz << endl;
         cout << "Velocity: " << velocity << endl;
 
-        if (thread_break)
+        if (move_break)
             break;
 		if (abs_oz > 3/2 * M_PI)
 			abs_oz = copysignf(2 * M_PI - abs(abs_oz), -abs_oz);
@@ -133,7 +135,7 @@ void AGV::Rotate(float target_oz, const int &speed)
         cout << "Oz Error: " << err_oz << endl;
         cout << "Oz Velocity: " << diff_velocity << endl;
         
-        if (thread_break)
+        if (move_break)
             break;
 
         Car::Move(-diff_velocity, -diff_velocity, 0.0f);
@@ -168,10 +170,10 @@ void AGV::Selfturn(const float direction, const int &speed)
 
 void AGV::Stop()
 {
-    thread_break = true;
+    move_break = true;
     Car::Stop();
     this_thread::sleep_for(std::chrono::milliseconds(100));
-    thread_break = false;
+    move_break = false;
 }
 
 void AGV::RotateConveyor(const float &direction)
@@ -186,6 +188,7 @@ void AGV::Put(const int &velocity)
     this_thread::sleep_for(std::chrono::milliseconds(1500));
     Car::Put(velocity);
     RotateConveyor(0);
+    PubDone();
 }
 
 
@@ -193,21 +196,62 @@ void AGV::Put(const int &velocity)
 /* 
 Ros
 */
-void AGV::InitialRos()
+void AGV::InitialMap()
 {
-    thread_sub_pos = thread(&AGV::SubPos, this);
+    // Disable map update
+    slamware_ros_sdk::SetMapUpdateRequest msg;
+    msg.enabled = false;
+    ros::Publisher mapUpdatePub = n.advertise<slamware_ros_sdk::SetMapUpdateRequest>("/slamware_ros_sdk_server_node/set_map_update", 1);
+    mapUpdatePub.publish(msg);
+    ros::spinOnce();
+
+    // Copy from slamware_ros_sdk/slamware_ros_sdk_client.cpp
+    slamware_ros_sdk::SyncSetStcm srvMsg;
+    boost::filesystem::ifstream ifs("/home/aiRobots/mini_agv/src/map.stcm", (std::ios_base::in | std::ios_base::binary | std::ios_base::ate));
+    if (!ifs.is_open())
+        printf("Failed to open file");
+
+    const auto szDat = ifs.tellg();
+    if (boost::filesystem::ifstream::pos_type(-1) == szDat)
+        printf("Failed to get file size.");
+    ifs.seekg(0);
+
+    srvMsg.request.raw_stcm.resize(szDat);
+    ifs.read((char*)srvMsg.request.raw_stcm.data(), szDat);
+    if (ifs.gcount() != szDat)
+        printf("Failed to read file data.");
+
+    ros::ServiceClient client = n.serviceClient<slamware_ros_sdk::SyncSetStcm>("/slamware_ros_sdk_server_node/sync_set_stcm");
+    client.waitForExistence();
+    if (client.call(srvMsg))
+        printf("Succeeded in calling syncSetStcm.");
+    else
+        printf("Failed to call syncSetStcm.");
 }
 
-void AGV::SubPos()
+void AGV::InitialRos()
+{
+    thread_sub = thread(&AGV::Sub, this);
+    pub_done = n.advertise<std_msgs::Bool>('/' + node_name + "/done", 1000);
+}
+
+void AGV::PubDone()
+{
+    std_msgs::Bool msg;
+    msg.data = true;
+    pub_done.publish(msg);
+}
+
+void AGV::Sub()
 {
     sub_pos = n.subscribe("/slamware_ros_sdk_server_node/odom", 0, &AGV::PosCallBack, this);
-    while (ros::ok && !delete_thread_pos)
+    sub_next_state = n.subscribe('/' + env_name + "/next_state", 0, &AGV::StateCallBack, this);
+    while (ros::ok && !delete_thread_sub)
     {
         ros::spinOnce();
         this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 }
-
 
 void AGV::PosCallBack(const nav_msgs::Odometry &msg)
 {
@@ -221,12 +265,32 @@ void AGV::PosCallBack(const nav_msgs::Odometry &msg)
     oz = yaw;
 }
 
+void AGV::StateCallBack(const std_msgs::Float32MultiArray &msg)
+{
+    next_state.push_back(msg.data);
+}
+
 void AGV::CheckData()
 {
+    next_state = {};
     Car::CheckData();
+    while (next_state.size() < num_agent)
+        this_thread::sleep_for(std::chrono::milliseconds(1));
+    next_x = next_state.at(idx).at(0) * map_unit;
+    next_y = next_state.at(idx).at(1) * map_unit;
 }
 
 const int AGV::GetAction()
 {
     return Car::GetAction();
+}
+
+const float AGV::GetNextX()
+{
+    return next_x;
+}
+
+const float AGV::GetNextY()
+{
+    return next_y;
 }
