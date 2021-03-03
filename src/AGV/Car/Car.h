@@ -66,8 +66,8 @@ private:
 	void ActionCallBack(const std_msgs::Float32MultiArray &msg);
 	void RewardCallBack(const std_msgs::Float32MultiArray &msg);
 public:
-	void CheckData();
-	const int GetAction();
+	virtual void CheckData();
+	virtual const int GetAction();
 
 
 

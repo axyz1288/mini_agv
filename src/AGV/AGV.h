@@ -10,6 +10,7 @@
 #include <thread>
 #include <slamware_ros_sdk/SetMapUpdateRequest.h>
 #include <slamware_ros_sdk/SyncSetStcm.h>
+#include <geometry_msgs/Pose.h>
 #include <boost/filesystem/fstream.hpp>
 
 class AGV : protected Car
@@ -29,6 +30,12 @@ public:
 	@ speed
 	*/
 	void Move(const float target_x, const float target_y, const int &speed = Car::default_velocity);
+	/*
+	@ target_x,
+	@ target_y,
+	@ speed
+	*/
+	void MoveDirection(const float target_x, const float target_y, const int &speed = Car::default_velocity);
 	/*
 	@ distance
 	@ speed
@@ -81,21 +88,24 @@ public:
 	*/
 	virtual void Put(const int &velocity = default_velocity);
 
-
+// Get
+	virtual const int GetAction();
+	const float GetNextX();
+	const float GetNextY();
+	const float GetNowX();
+	const float GetNowY();
 
 // Ros
 private:
 	void InitialMap();
 	void InitialRos();
-	void PubDone();
 	void Sub();
 	void PosCallBack(const nav_msgs::Odometry &msg);
-	void StateCallBack(const std_msgs::Float32MultiArray &msg);
+	void NowStateCallBack(const std_msgs::Float32MultiArray &msg);
+	void NextStateCallBack(const std_msgs::Float32MultiArray &msg);
 public:
-	void CheckData();
-	const int GetAction();
-	const float GetNextX();
-	const float GetNextY();
+	void PubDone();
+	virtual void CheckData();
 
 
 // Properties
@@ -109,11 +119,12 @@ private:
 
 	ros::Publisher pub_done;
 	ros::Subscriber sub_pos;
+	ros::Subscriber sub_now_state;
 	ros::Subscriber sub_next_state;
 	thread thread_sub;
 	bool delete_thread_sub = false;
 
-	vector<vector<float>> next_state;
+	vector<vector<float>> now_state, next_state;
 
 	float x, y, oz;
 	float next_x, next_y;
