@@ -23,20 +23,21 @@ int main(int argc, char *argv[])
 {
     const string nodeName = Ip2NodeName(argv[1]);
     ros::init(argc, argv, nodeName);
-    AGV *agv = AGV::getAGV(nodeName, argv[2]);
+    AGV *agv = AGV::getAGV(nodeName, argv[2], argv[3]);
     while(ros::ok)
     {
         agv->CheckData();
         if(agv->GetAction() == 0 || agv->GetAction() == 5)
             agv->Stop();
-        else if(agv->GetAction() == 1)
-            thread* forward = new thread(&AGV::MoveForward, agv, 0.5f, 100);
-        else if(agv->GetAction() == 2)
-            thread* backward = new thread(&AGV::MoveBackward, agv, 0.5f, 100);
-        else if(agv->GetAction() == 3)
-            thread* left = new thread(&AGV::MoveLeft, agv, 0.5f, 100);
-        else if(agv->GetAction() == 4)
-            thread* right = new thread(&AGV::MoveRight, agv, 0.5f, 100);
+        else if(agv->GetAction() == 1 || agv->GetAction() == 2 || agv->GetAction() == 3 || agv->GetAction() == 4)
+        {
+            /* 
+            callfunc is a pointer to a member. 
+            It means that it points to an void* member variable that is declared in the class AGV.
+            */
+            void (AGV::*callfunc)(const float, const float, const int &) = &AGV::Move;
+            thread* forward = new thread(callfunc, agv, agv->GetNextX(), agv->GetNextY(), 100);
+        }
         else if(agv->GetAction() == 6)
             agv->Put();
         else
