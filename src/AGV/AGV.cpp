@@ -43,6 +43,7 @@ void AGV::Move(const float target_x, const float target_y, const int &speed)
     const float abs_err_oz = atan2(target_y - y, target_x - x);
     Rotate(abs_err_oz, speed);
     MoveDirection(target_x, target_y, speed);
+    PubDone();
 }
 
 void AGV::MoveDirection(const float target_x, const float target_y, const int &speed)
@@ -201,6 +202,7 @@ void AGV::Put(const int &velocity)
     this_thread::sleep_for(std::chrono::milliseconds(1500));
     Car::Put(velocity);
     RotateConveyor(0);
+    PubDone();
 }
 
 
