@@ -10,6 +10,8 @@ AGV *AGV::getAGV(const string &node_name, const string &env_name, const string &
 
 AGV::AGV(const string &node_name, const string &env_name, const string &agent_name)
     : Car(node_name, env_name, agent_name),
+      map_w(int(info.data.at(-2 + info.data.size()))),
+      map_h(int(info.data.at(-1 + info.data.size()))),
       map_unit(0.6),
       Kp(1.5),
       Ki(0.5),
@@ -188,6 +190,7 @@ void AGV::Stop()
     Car::Stop();
     this_thread::sleep_for(std::chrono::milliseconds(100));
     move_break = false;
+    PubDone();
 }
 
 void AGV::RotateConveyor(const float &direction)
@@ -243,8 +246,8 @@ void AGV::InitialMap()
     /* Relocalize */
     while (now_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
-    const float now_x = now_state.at(idx).at(0) * map_unit;
-    const float now_y = now_state.at(idx).at(1) * map_unit;
+    const float now_x = now_state.at(idx).at(0) * map_w * map_unit;
+    const float now_y = now_state.at(idx).at(1) * map_h * map_unit;
     sub_now_state.shutdown();
     x = y = -1; // Initialize with a unreachable point
     geometry_msgs::Pose pose;
@@ -262,6 +265,7 @@ void AGV::InitialMap()
         ros::spinOnce();
         this_thread::sleep_for(std::chrono::milliseconds(50));
     }
+    Car::Rotate(2 * M_PI, 20);
 }
 
 void AGV::InitialRos()

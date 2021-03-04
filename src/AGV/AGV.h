@@ -128,6 +128,7 @@ private:
 
 	float x, y, oz;
 	float next_x, next_y;
+	const float map_w, map_h;
 	const float map_unit;
 	const float threshold;
 	const float Kp;
