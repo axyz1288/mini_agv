@@ -83,6 +83,7 @@ protected:
 	const string env_name;
 	const string agent_name;
 	const int idx;
+	const std_msgs::Float32MultiArray info;
 	const int num_agent;
 	ros::NodeHandle n;
 private:
