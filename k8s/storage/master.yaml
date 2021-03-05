@@ -17,7 +17,7 @@ spec:
       - matchExpressions: 
         - key: agent
           operator: In
-          values: [master]
+          values: [env]
 
 ---
 apiVersion: v1
@@ -39,7 +39,7 @@ spec:
       - matchExpressions: 
         - key: agent
           operator: In
-          values: [master]
+          values: [env]
 
 ---
 apiVersion: v1
@@ -61,7 +61,7 @@ spec:
       - matchExpressions: 
         - key: agent
           operator: In
-          values: [master]
+          values: [model]
 
 ---
 apiVersion: v1

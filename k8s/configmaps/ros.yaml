@@ -1,0 +1,6 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ros
+data:
+  ROS_MASTER_URI: http://192.168.50.199:11311

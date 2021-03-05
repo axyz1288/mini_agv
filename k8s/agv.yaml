@@ -40,15 +40,14 @@ spec:
         - name: dev
           mountPath: /dev
         env:
-        - name: MY_NODE_IP
+        - name: ROS_IP
           valueFrom:
             fieldRef:
               fieldPath: status.hostIP
-        - name: ROS_IP
-          value: $(MY_NODE_IP)
-        - name: ROS_MASTER_URI
-          value: http://192.168.50.193:11311
-        args: ["~/mini_agv/build/agv", "$(MY_NODE_IP)", "gacomm"]
+        envFrom:
+          - configMapRef:
+              name: ros
+        args: ["~/mini_agv/build/agv", "$(ROS_IP)", "agv", "gacomm"]
       volumes:
       - name: dev
         persistentVolumeClaim:
