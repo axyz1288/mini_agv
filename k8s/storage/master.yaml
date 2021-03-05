@@ -23,11 +23,11 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pybullet
+  name: env
 spec:
   storageClassName: local-storage
   local:
-    path: /home/airobots/aiRobots/pybullet
+    path: /home/airobots/aiRobots/pytorch/MARL
   capacity:
     storage: 10Mi
   volumeMode: Filesystem
@@ -45,11 +45,11 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: pytorch
+  name: model
 spec:
   storageClassName: local-storage
   local:
-    path: /home/airobots/aiRobots/pytorch
+    path: /home/airobots/aiRobots/pytorch/MARL
   capacity:
     storage: 10Gi
   volumeMode: Filesystem
@@ -79,7 +79,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pybullet
+  name: env
 spec:
   storageClassName: local-storage
   accessModes: [ReadWriteMany]
@@ -92,7 +92,7 @@ spec:
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: pytorch
+  name: model
 spec:
   storageClassName: local-storage
   accessModes: [ReadWriteMany]

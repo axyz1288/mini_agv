@@ -25,7 +25,7 @@ spec:
     volumeMounts:
     - name: x11
       mountPath: /tmp/.X11-unix
-    - name: pybullet
+    - name: env
       mountPath: /home/aiRobots
     env:  
       - name: ROS_IP
@@ -42,9 +42,9 @@ spec:
     - name: x11
       persistentVolumeClaim:
         claimName: x11
-    - name: pybullet
+    - name: env
       persistentVolumeClaim:
-        claimName: pybullet
+        claimName: env
 
 ---
 apiVersion: v1
@@ -72,7 +72,7 @@ spec:
         memory: "8G"
         cpu: "4"
     volumeMounts:
-    - name: pytorch
+    - name: model
       mountPath: /home/aiRobots
     env:  
       - name: ROS_IP
@@ -82,8 +82,8 @@ spec:
     envFrom:
       - configMapRef:
           name: ros
-    args: ["/bin/python3", "./MARL/mini_agv/main.py", "-E=agv", "-A=gacomm", "--load-model=0"]
+    args: ["/bin/python3", "./mini_agv/main.py", "-E=agv", "-A=gacomm", "--load-model=0"]
   volumes:
-  - name: pytorch
+  - name: model
     persistentVolumeClaim:
-      claimName: pytorch
+      claimName: model
