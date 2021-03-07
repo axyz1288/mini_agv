@@ -25,7 +25,7 @@ Car::Car(const string &node_name, const string &env_name, const string &agent_na
       env_name(env_name),
       agent_name(agent_name),
       idx(atoi(&node_name[3])),
-      info(*(ros::topic::waitForMessage<std_msgs::Float32MultiArray>('/' + env_name + "/info", ros::Duration(180)))),
+      info(*(ros::topic::waitForMessage<std_msgs::Float32MultiArray>('/' + env_name + "/info", ros::Duration(600)))),
       num_agent(int(info.data.at(0)))
 {
     SetAllMotorsAccel(10);
