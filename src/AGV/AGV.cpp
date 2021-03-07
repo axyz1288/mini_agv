@@ -270,8 +270,11 @@ void AGV::InitialMap()
 
 void AGV::InitialRos()
 {
-    thread_sub = thread(&AGV::Sub, this);
     pub_done = n.advertise<std_msgs::Bool>('/' + node_name + "/done", 1000);
+    sub_pos = n.subscribe("/slamware_ros_sdk_server_node/odom", 1000, &AGV::PosCallBack, this);
+    sub_now_state = n.subscribe('/' + env_name + "/now_state", 1000, &AGV::NowStateCallBack, this);
+    sub_next_state = n.subscribe('/' + env_name + "/next_state", 1000, &AGV::NextStateCallBack, this);
+    thread_sub = thread(&AGV::Sub, this);
 }
 
 void AGV::PubDone()
@@ -283,9 +286,6 @@ void AGV::PubDone()
 
 void AGV::Sub()
 {
-    sub_pos = n.subscribe("/slamware_ros_sdk_server_node/odom", 1000, &AGV::PosCallBack, this);
-    sub_now_state = n.subscribe('/' + env_name + "/now_state", 1000, &AGV::NowStateCallBack, this);
-    sub_next_state = n.subscribe('/' + env_name + "/next_state", 1000, &AGV::NextStateCallBack, this);
     while (ros::ok && !delete_thread_sub)
     {
         ros::spinOnce();
@@ -321,8 +321,8 @@ void AGV::CheckData()
     Car::CheckData();
     while (next_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
-    next_x = next_state.at(idx).at(0) * map_unit;
-    next_y = next_state.at(idx).at(1) * map_unit;
+    next_x = next_state.at(idx).at(0) * map_w * map_unit;
+    next_y = next_state.at(idx).at(1) * map_h * map_unit;
 }
 
 const int AGV::GetAction()

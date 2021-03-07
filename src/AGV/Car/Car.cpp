@@ -171,13 +171,13 @@ Ros
 */
 void Car::InitialRos()
 {
+    sub_a = n.subscribe('/' + agent_name + "/action", 1000, &Car::ActionCallBack, this);
+    sub_r = n.subscribe('/' + env_name + "/reward", 1000, &Car::RewardCallBack, this);
     thread_sub = thread(&Car::Sub, this);
 }
 
 void Car::Sub()
 {
-    sub_a = n.subscribe('/' + agent_name + "/action", 1000, &Car::ActionCallBack, this);
-    sub_r = n.subscribe('/' + env_name + "/reward", 1000, &Car::RewardCallBack, this);
     while (ros::ok && !delete_thread_sub)
     {
         ros::spinOnce();
