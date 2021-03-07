@@ -248,7 +248,6 @@ void AGV::InitialMap()
         this_thread::sleep_for(std::chrono::milliseconds(1));
     const float now_x = now_state.at(idx).at(0) * map_w * map_unit;
     const float now_y = now_state.at(idx).at(1) * map_h * map_unit;
-    sub_now_state.shutdown();
     x = y = -1; // Initialize with a unreachable point
     geometry_msgs::Pose pose;
     pose.position.x = now_x;
