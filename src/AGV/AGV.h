@@ -106,7 +106,7 @@ private:
 public:
 	void PubDone();
 	virtual void CheckData();
-
+	virtual void ClearData();
 
 // Properties
 public:

@@ -67,6 +67,7 @@ private:
 	void RewardCallBack(const std_msgs::Float32MultiArray &msg);
 public:
 	virtual void CheckData();
+	virtual void ClearData();
 	virtual const int GetAction();
 
 

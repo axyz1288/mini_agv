@@ -316,12 +316,20 @@ void AGV::NextStateCallBack(const std_msgs::Float32MultiArray &msg)
 
 void AGV::CheckData()
 {
-    next_state = {};
     Car::CheckData();
     while (next_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
     next_x = next_state.at(idx).at(0) * map_w * map_unit;
     next_y = next_state.at(idx).at(1) * map_h * map_unit;
+}
+
+void AGV::ClearData()
+{
+    Car::ClearData();
+    for(int i = 0; i < num_agent; i++)
+    {
+        next_state.erase(next_state.begin());
+    }
 }
 
 const int AGV::GetAction()

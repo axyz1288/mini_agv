@@ -26,7 +26,9 @@ int main(int argc, char *argv[])
     AGV *agv = AGV::getAGV(nodeName, argv[2], argv[3]);
     while(ros::ok)
     {
+        cout << "check data\n" << flush;
         agv->CheckData();
+        cout << "ok\n" << flush;
         if(agv->GetAction() == 0 || agv->GetAction() == 5)
             agv->Stop();
         else if(agv->GetAction() == 1 || agv->GetAction() == 2 || agv->GetAction() == 3 || agv->GetAction() == 4)
@@ -45,6 +47,7 @@ int main(int argc, char *argv[])
             cout << "Out of action space" << endl;
             break;
         }
+        agv->ClearData();
     }
     return 0;
 }
