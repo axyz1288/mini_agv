@@ -197,7 +197,7 @@ void Car::RewardCallBack(const std_msgs::Float32MultiArray &msg)
 
 void Car::CheckData()
 {
-    while (action.size() < num_agent && reward.size() < num_agent)
+    while (action.size() < num_agent || reward.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
     for(int i = 0; i < reward.size(); i++)
     {

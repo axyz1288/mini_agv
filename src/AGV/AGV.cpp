@@ -280,6 +280,8 @@ void AGV::PubDone()
 {
     std_msgs::Bool msg;
     msg.data = true;
+    while(pub_done.getNumSubscribers() == 0)
+        this_thread::sleep_for(std::chrono::milliseconds(50));
     pub_done.publish(msg);
 }
 
