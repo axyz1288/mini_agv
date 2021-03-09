@@ -2,7 +2,6 @@
 #include "./Car/Car.h"
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
-#include <std_msgs/Bool.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Quaternion.h>
 #include <tf/transform_datatypes.h>
@@ -104,7 +103,6 @@ private:
 	void NowStateCallBack(const std_msgs::Float32MultiArray &msg);
 	void NextStateCallBack(const std_msgs::Float32MultiArray &msg);
 public:
-	void PubDone();
 	virtual void CheckData();
 	virtual void ClearData();
 
@@ -117,7 +115,6 @@ private:
 	AGV(const string &node_name, const string &env_name, const string &agent_name);
 	static AGV *inst_;
 
-	ros::Publisher pub_done;
 	ros::Subscriber sub_pos;
 	ros::Subscriber sub_now_state;
 	ros::Subscriber sub_next_state;

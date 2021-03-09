@@ -173,6 +173,8 @@ void Car::InitialRos()
 {
     sub_a = n.subscribe('/' + agent_name + "/action", 1000, &Car::ActionCallBack, this);
     sub_r = n.subscribe('/' + env_name + "/reward", 1000, &Car::RewardCallBack, this);
+    sub_done = n.subscribe('/' + env_name + "/done", 1000, &Car::DoneCallBack, this);
+    pub_done = n.advertise<std_msgs::Float32MultiArray>('/' + node_name + "/done", 1000);
     thread_sub = thread(&Car::Sub, this);
 }
 
@@ -195,15 +197,18 @@ void Car::RewardCallBack(const std_msgs::Float32MultiArray &msg)
     reward.push_back(msg.data);
 }
 
+void Car::DoneCallBack(const std_msgs::Float32MultiArray &msg)
+{
+    done.push_back(msg.data);
+}
+
 void Car::CheckData()
 {
-    while (action.size() < num_agent || reward.size() < num_agent)
+    while (action.size() < num_agent || reward.size() < num_agent || done.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
-    for(int i = 0; i < reward.size(); i++)
-    {
-        if(reward.at(i).at(0) < 0)
-            action.at(i).at(0) = 0;
-    }
+
+    if (GetDone() == true)
+        exit(EXIT_FAILURE);
 }
 
 void Car::ClearData()
@@ -212,10 +217,25 @@ void Car::ClearData()
     {
         action.erase(action.begin());
         reward.erase(reward.begin());
+        done.erase(done.begin());
     }
 }
 
 const int Car::GetAction()
 {
     return int(action.at(idx).at(0));
+}
+
+const bool Car::GetDone()
+{
+    return bool(done.at(idx).at(0));
+}
+
+void Car::PubDone()
+{
+    std_msgs::Float32MultiArray msg;
+    msg.data = {1};
+    while(pub_done.getNumSubscribers() == 0)
+        this_thread::sleep_for(std::chrono::milliseconds(50));
+    pub_done.publish(msg);
 }

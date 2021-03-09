@@ -12,13 +12,13 @@ AGV::AGV(const string &node_name, const string &env_name, const string &agent_na
     : Car(node_name, env_name, agent_name),
       map_w(int(info.data.at(-2 + info.data.size()))),
       map_h(int(info.data.at(-1 + info.data.size()))),
-      map_unit(0.6),
+      map_unit(0.5),
       Kp(1.5),
       Ki(0.5),
       Kd(0.06),
       Koz(1),
       dt(0.01),
-      threshold(0.02)
+      threshold(0.1)
 {
     InitialRos();
     InitialMap();
@@ -83,8 +83,8 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
     	const float velocity_y = abs(speed) * (Kp * err_y + Ki * sum_err_y + Kd * diff_err_y);
         const int velocity = copysignf(sqrt(pow(velocity_x, 2) + pow(velocity_y, 2)), velocity_x);
 		
-        cout << "Error: " << err_x << "   " << err_y << "   " << err_oz << "   " << abs_oz << endl;
-        cout << "Velocity: " << velocity << endl;
+        cout << "Error: " << err_x << "   " << err_y << "   " << err_oz << "   " << abs_oz << '\n' << flush;
+        cout << "Velocity: " << velocity << '\n' << flush;
 
         if (move_break)
             break;
@@ -94,7 +94,7 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_x) > threshold || abs(err_y) > 2 * threshold);
     Stop();
-    cout << "Finished" << endl;
+    cout << "Finished" << '\n' << flush;
 }
 
 void AGV::MoveForward(const float distance, const int &speed)
@@ -148,8 +148,8 @@ void AGV::Rotate(float target_oz, const int &speed)
         sum_err_oz += err_oz * dt;
         int diff_velocity = Koz * abs(speed) * (Kp * err_oz + Ki * sum_err_oz + Kd * diff_err_oz);
 
-        cout << "Oz Error: " << err_oz << endl;
-        cout << "Oz Velocity: " << diff_velocity << endl;
+        cout << "Oz Error: " << err_oz << '\n' << flush;
+        cout << "Oz Velocity: " << diff_velocity << '\n' << flush;
         
         if (move_break)
             break;
@@ -158,7 +158,7 @@ void AGV::Rotate(float target_oz, const int &speed)
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_oz) > 0.2 * threshold);
     Stop();
-    cout << "Finished" << endl;
+    cout << "Finished\n" << flush;
 }
 
 void AGV::RotateLeft(const float direction, const int &speed)
@@ -181,7 +181,7 @@ void AGV::Selfturn(const float direction, const int &speed)
     Rotate(oz + direction, speed);
     Car::MoveForward(kWheelBase_2, speed);
     Stop();
-    cout << target_x - x << "   " << target_y - y << "   " << target_oz - oz << endl;
+    cout << target_x - x << "   " << target_y - y << "   " << target_oz - oz << '\n' << flush;
 }
 
 void AGV::Stop()
@@ -190,7 +190,6 @@ void AGV::Stop()
     Car::Stop();
     this_thread::sleep_for(std::chrono::milliseconds(100));
     move_break = false;
-    PubDone();
 }
 
 void AGV::RotateConveyor(const float &direction)
@@ -269,20 +268,10 @@ void AGV::InitialMap()
 
 void AGV::InitialRos()
 {
-    pub_done = n.advertise<std_msgs::Bool>('/' + node_name + "/done", 1000);
     sub_pos = n.subscribe("/slamware_ros_sdk_server_node/odom", 1000, &AGV::PosCallBack, this);
     sub_now_state = n.subscribe('/' + env_name + "/now_state", 1000, &AGV::NowStateCallBack, this);
     sub_next_state = n.subscribe('/' + env_name + "/next_state", 1000, &AGV::NextStateCallBack, this);
     thread_sub = thread(&AGV::Sub, this);
-}
-
-void AGV::PubDone()
-{
-    std_msgs::Bool msg;
-    msg.data = true;
-    while(pub_done.getNumSubscribers() == 0)
-        this_thread::sleep_for(std::chrono::milliseconds(50));
-    pub_done.publish(msg);
 }
 
 void AGV::Sub()
@@ -330,6 +319,7 @@ void AGV::ClearData()
     Car::ClearData();
     for(int i = 0; i < num_agent; i++)
     {
+        now_state.erase(now_state.begin());
         next_state.erase(next_state.begin());
     }
 }

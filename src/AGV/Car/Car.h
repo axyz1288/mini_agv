@@ -65,11 +65,13 @@ private:
 	void Sub();
 	void ActionCallBack(const std_msgs::Float32MultiArray &msg);
 	void RewardCallBack(const std_msgs::Float32MultiArray &msg);
+	void DoneCallBack(const std_msgs::Float32MultiArray &msg);
 public:
 	virtual void CheckData();
 	virtual void ClearData();
-	virtual const int GetAction();
-
+	const int GetAction();
+	const bool GetDone();
+	void PubDone();
 
 
 // Properties
@@ -90,10 +92,13 @@ protected:
 private:
 	ros::Subscriber sub_a;
 	ros::Subscriber sub_r;
+	ros::Subscriber sub_done;
+	ros::Publisher pub_done;
 	thread thread_sub;
 	bool delete_thread_sub = false;
 	vector<vector<float>> action;
 	vector<vector<float>> reward;
+	vector<vector<float>> done;
 
 protected:
 	const unsigned char wheel_L;

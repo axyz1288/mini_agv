@@ -29,9 +29,16 @@ int main(int argc, char *argv[])
         cout << "check data\n" << flush;
         agv->CheckData();
         cout << "ok\n" << flush;
-        if(agv->GetAction() == 0 || agv->GetAction() == 5)
-            agv->Stop();
-        else if(agv->GetAction() == 1 || agv->GetAction() == 2 || agv->GetAction() == 3 || agv->GetAction() == 4)
+        // if(agv->GetAction() == 0 || agv->GetAction() == 5)
+        //     agv->Stop();
+        if(
+            agv->GetAction() == 0 || 
+            agv->GetAction() == 1 || 
+            agv->GetAction() == 2 || 
+            agv->GetAction() == 3 || 
+            agv->GetAction() == 4 ||
+            agv->GetAction() == 5
+        )
         {
             /* 
             callfunc is a pointer to a member. 
@@ -44,7 +51,7 @@ int main(int argc, char *argv[])
             agv->Put();
         else
         {
-            cout << "Out of action space" << endl;
+            cout << "Out of action space\n" << flush;
             break;
         }
         agv->ClearData();
