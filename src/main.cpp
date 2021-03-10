@@ -28,32 +28,15 @@ int main(int argc, char *argv[])
     {
         cout << "check data\n" << flush;
         agv->CheckData();
-        cout << "ok\n" << flush;
-        // if(agv->GetAction() == 0 || agv->GetAction() == 5)
-        //     agv->Stop();
-        if(
-            agv->GetAction() == 0 || 
-            agv->GetAction() == 1 || 
-            agv->GetAction() == 2 || 
-            agv->GetAction() == 3 || 
-            agv->GetAction() == 4 ||
-            agv->GetAction() == 5
-        )
-        {
-            /* 
-            callfunc is a pointer to a member. 
-            It means that it points to an void* member variable that is declared in the class AGV.
-            */
-            void (AGV::*callfunc)(const float, const float, const int &) = &AGV::Move;
-            thread* forward = new thread(callfunc, agv, agv->GetNextX(), agv->GetNextY(), 100);
-        }
+        cout << agv->GetAction() << '\n' << flush;
+        if(agv->GetAction() == 0 || agv->GetAction() == 5)
+            agv->PubDone();
+        else if(agv->GetAction() == 1 || agv->GetAction() == 2 || agv->GetAction() == 3 || agv->GetAction() == 4)
+            agv->Move(agv->GetNextX(), agv->GetNextY(), 50);
         else if(agv->GetAction() == 6)
             agv->Put();
         else
-        {
             cout << "Out of action space\n" << flush;
-            break;
-        }
         agv->ClearData();
     }
     return 0;
