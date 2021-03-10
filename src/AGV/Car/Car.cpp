@@ -43,7 +43,9 @@ Car::~Car()
 {
     inst_ = nullptr;
     delete_thread_sub = true;
+    delete_thread_emstop = true;
     thread_sub.join();
+    thread_emstop.join();
 }
 
 /* 
@@ -176,6 +178,7 @@ void Car::InitialRos()
     sub_done = n.subscribe('/' + env_name + "/done", 1000, &Car::DoneCallBack, this);
     pub_done = n.advertise<std_msgs::Float32MultiArray>('/' + node_name + "/done", 1000);
     thread_sub = thread(&Car::Sub, this);
+    thread_emstop = thread(&Car::EmergencyStop, this);
 }
 
 void Car::Sub()
@@ -202,17 +205,30 @@ void Car::DoneCallBack(const std_msgs::Float32MultiArray &msg)
     done.push_back(msg.data);
 }
 
+void Car::EmergencyStop()
+{
+    while (!delete_thread_emstop)
+    {
+        std::lock_guard<std::mutex> lck (lock_clear);
+        while (done.size() < num_agent)
+            this_thread::sleep_for(std::chrono::milliseconds(50));
+        if(GetDone() == true)
+        {
+            Stop();
+            exit(EXIT_FAILURE);
+        }
+    }
+}
+
 void Car::CheckData()
 {
     while (action.size() < num_agent || reward.size() < num_agent || done.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
-
-    if (GetDone() == true)
-        exit(EXIT_FAILURE);
 }
 
 void Car::ClearData()
 {
+    std::lock_guard<std::mutex> lck (lock_clear);
     for(int i = 0; i < num_agent; i++)
     {
         action.erase(action.begin());

@@ -3,6 +3,7 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <thread>
+#include <mutex>
 
 class Car: public MotorUnion
 {
@@ -66,12 +67,13 @@ private:
 	void ActionCallBack(const std_msgs::Float32MultiArray &msg);
 	void RewardCallBack(const std_msgs::Float32MultiArray &msg);
 	void DoneCallBack(const std_msgs::Float32MultiArray &msg);
+	void EmergencyStop();
 public:
 	virtual void CheckData();
 	virtual void ClearData();
+	virtual void PubDone();
 	const int GetAction();
 	const bool GetDone();
-	void PubDone();
 
 
 // Properties
@@ -95,7 +97,10 @@ private:
 	ros::Subscriber sub_done;
 	ros::Publisher pub_done;
 	thread thread_sub;
+	thread thread_emstop;
+	mutex lock_clear;
 	bool delete_thread_sub = false;
+	bool delete_thread_emstop = false;
 	vector<vector<float>> action;
 	vector<vector<float>> reward;
 	vector<vector<float>> done;
