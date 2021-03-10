@@ -101,9 +101,9 @@ private:
 	mutex lock_clear;
 	bool delete_thread_sub = false;
 	bool delete_thread_emstop = false;
-	vector<vector<float>> action;
-	vector<vector<float>> reward;
-	vector<vector<float>> done;
+	vector<vector<float>> action = {};
+	vector<vector<float>> reward = {};
+	vector<vector<float>> done = {};
 
 protected:
 	const unsigned char wheel_L;

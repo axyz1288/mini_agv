@@ -64,10 +64,6 @@ void Car::Move(const int &velocity_L, const int &velocity_R, const float &distan
 
     if (distance == 0)
     {
-        if (!GetMotor_TorqueEnable(wheel_L))
-            SetMotor_TorqueEnable(wheel_L, true);
-        if (!GetMotor_TorqueEnable(wheel_R))
-            SetMotor_TorqueEnable(wheel_R, true);
         SetMotor_Velocity(wheel_L, tmp_velocity_L);
         SetMotor_Velocity(wheel_R, tmp_velocity_R);
     }
@@ -95,10 +91,6 @@ void Car::Move(const int &velocity_L, const int &velocity_R, const float &distan
             tmp_velocity_R = copysignf((present_velocity_R * VEL2METER_MS + accel_R * ACCEL2METER_MS2 * rising_time) / VEL2METER_MS, velocity_R);
         }
 
-        if (!GetMotor_TorqueEnable(wheel_L))
-            SetMotor_TorqueEnable(wheel_L, true);
-        if (!GetMotor_TorqueEnable(wheel_R))
-            SetMotor_TorqueEnable(wheel_R, true);
         SetMotor_Velocity(wheel_L, tmp_velocity_L);
         SetMotor_Velocity(wheel_R, tmp_velocity_R);
         WaitAllMotorsArrival(steady_time + rising_time);
@@ -152,8 +144,6 @@ void Car::Stop()
 {
     SetMotor_Velocity(wheel_L, 0);
     SetMotor_Velocity(wheel_R, 0);
-    SetMotor_TorqueEnable(wheel_L, false);
-    SetMotor_TorqueEnable(wheel_R, false);
 }
 
 void Car::RotateConveyor(const float &direction)
@@ -209,31 +199,31 @@ void Car::EmergencyStop()
 {
     while (!delete_thread_emstop)
     {
-        std::lock_guard<std::mutex> lck (lock_clear);
+        done = {};
         while (done.size() < num_agent)
             this_thread::sleep_for(std::chrono::milliseconds(50));
         if(GetDone() == true)
         {
             Stop();
-            exit(EXIT_FAILURE);
+            SetMotor_TorqueEnable(wheel_L, false);
+            SetMotor_TorqueEnable(wheel_R, false);
+            exit(0);
         }
     }
 }
 
 void Car::CheckData()
 {
-    while (action.size() < num_agent || reward.size() < num_agent || done.size() < num_agent)
+    while (action.size() < num_agent || reward.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
 }
 
 void Car::ClearData()
 {
-    std::lock_guard<std::mutex> lck (lock_clear);
     for(int i = 0; i < num_agent; i++)
     {
         action.erase(action.begin());
         reward.erase(reward.begin());
-        done.erase(done.begin());
     }
 }
 

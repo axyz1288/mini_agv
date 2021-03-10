@@ -122,7 +122,8 @@ private:
 	thread thread_sub;
 	bool delete_thread_sub = false;
 
-	vector<vector<float>> now_state, next_state;
+	vector<vector<float>> now_state = {}; 
+	vector<vector<float>> next_state = {};
 
 	float x, y, oz;
 	float next_x, next_y;
