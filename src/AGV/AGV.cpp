@@ -82,19 +82,15 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
 		const float velocity_x = abs(speed) * (Kp * err_x + Ki * sum_err_x + Kd * diff_err_x);
     	const float velocity_y = abs(speed) * (Kp * err_y + Ki * sum_err_y + Kd * diff_err_y);
         const int velocity = copysignf(sqrt(pow(velocity_x, 2) + pow(velocity_y, 2)), velocity_x);
-		
-        cout << "Error: " << err_x << "   " << err_y << "   " << err_oz << "   " << abs_oz << '\n' << flush;
-        cout << "Velocity: " << velocity << '\n' << flush;
 
         if (move_break)
             break;
 		if (abs_oz > 3/2 * M_PI)
 			abs_oz = copysignf(2 * M_PI - abs(abs_oz), -abs_oz);
-        Car::MoveDirection(2 * abs_oz, 0.0f, velocity);
+        Car::MoveDirection(3 * abs_oz, 0.0f, velocity);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
-    } while (abs(err_x) > threshold || abs(err_y) > 2 * threshold);
+    } while (abs(err_x) > threshold || abs(err_y) > threshold);
     Stop();
-    cout << "Finished" << '\n' << flush;
 }
 
 void AGV::MoveForward(const float distance, const int &speed)
@@ -147,9 +143,6 @@ void AGV::Rotate(float target_oz, const int &speed)
             target_oz = copysignf(2 * M_PI - abs(target_oz), -target_oz);
         sum_err_oz += err_oz * dt;
         int diff_velocity = Koz * abs(speed) * (Kp * err_oz + Ki * sum_err_oz + Kd * diff_err_oz);
-
-        cout << "Oz Error: " << err_oz << '\n' << flush;
-        cout << "Oz Velocity: " << diff_velocity << '\n' << flush;
         
         if (move_break)
             break;
@@ -158,7 +151,6 @@ void AGV::Rotate(float target_oz, const int &speed)
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_oz) > 0.2 * threshold);
     Stop();
-    cout << "Finished\n" << flush;
 }
 
 void AGV::RotateLeft(const float direction, const int &speed)
@@ -181,7 +173,6 @@ void AGV::Selfturn(const float direction, const int &speed)
     Rotate(oz + direction, speed);
     Car::MoveForward(kWheelBase_2, speed);
     Stop();
-    cout << target_x - x << "   " << target_y - y << "   " << target_oz - oz << '\n' << flush;
 }
 
 void AGV::Stop()
@@ -308,8 +299,9 @@ void AGV::NextStateCallBack(const std_msgs::Float32MultiArray &msg)
 void AGV::CheckData()
 {
     Car::CheckData();
-    while (next_state.size() < num_agent)
+    while (now_state.size() < num_agent || next_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
+    
     next_x = next_state.at(idx).at(0) * map_w * map_unit;
     next_y = next_state.at(idx).at(1) * map_h * map_unit;
 }
@@ -322,6 +314,11 @@ void AGV::ClearData()
         now_state.erase(now_state.begin());
         next_state.erase(next_state.begin());
     }
+}
+
+void AGV::PubDone()
+{
+    Car::PubDone();
 }
 
 const int AGV::GetAction()
