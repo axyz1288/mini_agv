@@ -148,7 +148,7 @@ void Car::Stop()
 
 void Car::RotateConveyor(const float &direction)
 {
-    SetMotor_Angle(Conveyor_R, direction);
+    SetMotor_Angle(Conveyor_R, direction * Rad2Angle);
 }
 
 void Car::Put(const int &velocity)

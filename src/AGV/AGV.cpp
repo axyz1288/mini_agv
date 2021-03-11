@@ -18,7 +18,7 @@ AGV::AGV(const string &node_name, const string &env_name, const string &agent_na
       Kd(0.06),
       Koz(1),
       dt(0.01),
-      threshold(0.1)
+      threshold(0.01)
 {
     InitialRos();
     InitialMap();
@@ -190,8 +190,7 @@ void AGV::RotateConveyor(const float &direction)
 
 void AGV::Put(const int &velocity)
 {
-    const float direction = oz * Rad2Angle;
-    RotateConveyor(-direction);
+    RotateConveyor(-oz);
     this_thread::sleep_for(std::chrono::milliseconds(1500));
     Car::Put(velocity);
     RotateConveyor(0);
