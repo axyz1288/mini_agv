@@ -6,6 +6,7 @@
 #include <geometry_msgs/Quaternion.h>
 #include <tf/transform_datatypes.h>
 #include <tf/LinearMath/Matrix3x3.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <thread>
 #include <slamware_ros_sdk/SetMapUpdateRequest.h>
 #include <slamware_ros_sdk/SyncSetStcm.h>
@@ -130,10 +131,8 @@ private:
 	const float map_w, map_h;
 	const float map_unit;
 	const float threshold;
-	const float Kp;
-	const float Ki;
-	const float Kd;
-	const float Koz;
+	const float Kp, Ki, Kd, Koz;
+	const float Kp_oz, Ki_oz, Kd_oz;
 	const float dt;
 
 	bool move_break = false;

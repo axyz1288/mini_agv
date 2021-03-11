@@ -13,10 +13,13 @@ AGV::AGV(const string &node_name, const string &env_name, const string &agent_na
       map_w(int(info.data.at(-2 + info.data.size()))),
       map_h(int(info.data.at(-1 + info.data.size()))),
       map_unit(0.5),
-      Kp(1.5),
-      Ki(0.5),
-      Kd(0.06),
-      Koz(1),
+      Kp(4), // 4.2
+      Ki(0.2),   // 0
+      Kd(3),   // 2
+      Koz(0.25),
+      Kp_oz(1), // 1
+      Ki_oz(0.05), // 0
+      Kd_oz(3), // 3
       dt(0.01),
       threshold(0.01)
 {
@@ -43,19 +46,22 @@ void AGV::Move(const float target_x, const float target_y, const float target_oz
 void AGV::Move(const float target_x, const float target_y, const int &speed)
 {
     const float abs_err_oz = atan2(target_y - y, target_x - x);
-    Rotate(abs_err_oz, speed);
-    MoveDirection(target_x, target_y, speed);
+    if (target_x - x > map_unit || target_y - y > map_unit)
+    {
+        Rotate(abs_err_oz, speed);
+        MoveDirection(target_x, target_y, speed);
+    }
     PubDone();
 }
 
 void AGV::MoveDirection(const float target_x, const float target_y, const int &speed)
 {   
     float abs_err_x, abs_err_y, abs_oz;
-    float err_x, err_y, err_oz;
+    float err_x, err_y, err_oz, err_oz2;
     float sum_err_x, sum_err_y, sum_err_oz;
     float diff_err_x, diff_err_y, diff_err_oz;
     abs_err_x = abs_err_y = abs_oz = 0;
-    err_x = err_y = err_oz = 0;
+    err_x = err_y = err_oz = err_oz2 = 0;
     sum_err_x = sum_err_y = 0;
     diff_err_x = diff_err_y  = 0;
 
@@ -72,13 +78,19 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
         abs_oz = target_oz - oz;
         distance = sqrt(pow(abs_err_x, 2) + pow(abs_err_y, 2));
         err_oz = atan2(abs_err_y, abs_err_x) - oz;
+        // calculate error x, y
         diff_err_x = ((distance * cos(err_oz)) - err_x) / dt;
         diff_err_y = ((distance * sin(err_oz)) - err_y) / dt;
         err_x = distance * cos(err_oz);
         err_y = distance * sin(err_oz);
         sum_err_x += err_x * dt;
         sum_err_y += err_y * dt;
+        // calculate error oz
+        diff_err_oz = (err_oz - err_oz2)/dt;
+        sum_err_oz += err_oz * dt; 
+        err_oz2 = err_oz;
 
+        const float direction = Kp_oz * err_oz + Ki_oz * sum_err_oz + Kd_oz * diff_err_oz;
 		const float velocity_x = abs(speed) * (Kp * err_x + Ki * sum_err_x + Kd * diff_err_x);
     	const float velocity_y = abs(speed) * (Kp * err_y + Ki * sum_err_y + Kd * diff_err_y);
         const int velocity = copysignf(sqrt(pow(velocity_x, 2) + pow(velocity_y, 2)), velocity_x);
@@ -87,9 +99,10 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
             break;
 		if (abs_oz > 3/2 * M_PI)
 			abs_oz = copysignf(2 * M_PI - abs(abs_oz), -abs_oz);
-        Car::MoveDirection(3 * abs_oz, 0.0f, velocity);
+        Car::MoveDirection(direction, 0.0f, velocity);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_x) > threshold || abs(err_y) > threshold);
+    cout << x << "   " << y << "   " << oz << "\n" << flush;
     Stop();
 }
 
@@ -149,7 +162,7 @@ void AGV::Rotate(float target_oz, const int &speed)
 
         Car::Move(-diff_velocity, -diff_velocity, 0.0f);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
-    } while (abs(err_oz) > 0.2 * threshold);
+    } while (abs(err_oz) > threshold);
     Stop();
 }
 
@@ -191,7 +204,7 @@ void AGV::RotateConveyor(const float &direction)
 void AGV::Put(const int &velocity)
 {
     RotateConveyor(-oz);
-    this_thread::sleep_for(std::chrono::milliseconds(1500));
+    this_thread::sleep_for(std::chrono::milliseconds(2000));
     Car::Put(velocity);
     RotateConveyor(0);
     PubDone();
@@ -239,15 +252,19 @@ void AGV::InitialMap()
     const float now_y = now_state.at(idx).at(1) * map_h * map_unit;
     x = y = -1; // Initialize with a unreachable point
     geometry_msgs::Pose pose;
+    tf::Quaternion quat_tf;
+    geometry_msgs::Quaternion quat_msg;
+    quat_tf.setRPY(0, 0, 0);
+    tf::quaternionTFToMsg(quat_tf, quat_msg);
     pose.position.x = now_x;
     pose.position.y = now_y;
     pose.position.z = 0;
-    pose.orientation.x = 0;
-    pose.orientation.y = 0;
-    pose.orientation.z = 0;
-    pose.orientation.w = 1;
+    pose.orientation.x = quat_msg.x;
+    pose.orientation.y = quat_msg.y;
+    pose.orientation.z = quat_msg.z;
+    pose.orientation.w = quat_msg.w;
     ros::Publisher pub_pose = n.advertise<geometry_msgs::Pose>("/slamware_ros_sdk_server_node/set_pose", 0);
-    while(x != now_x || y != now_y)
+    while(x != now_x || y != now_y || oz != 0)
     {
         pub_pose.publish(pose);
         ros::spinOnce();
