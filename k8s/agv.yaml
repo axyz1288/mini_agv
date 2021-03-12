@@ -47,7 +47,7 @@ spec:
         envFrom:
           - configMapRef:
               name: ros
-        args: ["~/mini_agv/build/agv", "$(ROS_IP)", "agv", "gacomm"]
+        args: ["/mini_agv.sh", "agv", "gacomm"]
       volumes:
       - name: dev
         persistentVolumeClaim:

@@ -13,14 +13,14 @@ AGV::AGV(const string &node_name, const string &env_name, const string &agent_na
       map_w(int(info.data.at(-2 + info.data.size()))),
       map_h(int(info.data.at(-1 + info.data.size()))),
       map_unit(0.5),
-      Kp(4), // 4.2
-      Ki(0.2),   // 0
-      Kd(3),   // 2
-      Koz(0.25),
+      Kp(2.5), // 4.2
+      Ki(0.25),   // 0
+      Kd(0.5),   // 2
+      Koz(0.1),
       Kp_oz(1), // 1
-      Ki_oz(0.05), // 0
+      Ki_oz(0), // 0
       Kd_oz(3), // 3
-      dt(0.01),
+      dt(0.001),
       threshold(0.01)
 {
     InitialRos();
@@ -46,7 +46,7 @@ void AGV::Move(const float target_x, const float target_y, const float target_oz
 void AGV::Move(const float target_x, const float target_y, const int &speed)
 {
     const float abs_err_oz = atan2(target_y - y, target_x - x);
-    if (target_x - x > map_unit || target_y - y > map_unit)
+    if (abs(target_x - x) > map_unit / 2 || abs(target_y - y) > map_unit / 2)
     {
         Rotate(abs_err_oz, speed);
         MoveDirection(target_x, target_y, speed);
@@ -102,7 +102,7 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
         Car::MoveDirection(direction, 0.0f, velocity);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_x) > threshold || abs(err_y) > threshold);
-    cout << x << "   " << y << "   " << oz << "\n" << flush;
+    cout << x << "   " << y << "\n" << flush;
     Stop();
 }
 
@@ -155,7 +155,7 @@ void AGV::Rotate(float target_oz, const int &speed)
         if (abs(err_oz) > 3 * M_PI_2)
             target_oz = copysignf(2 * M_PI - abs(target_oz), -target_oz);
         sum_err_oz += err_oz * dt;
-        int diff_velocity = Koz * abs(speed) * (Kp * err_oz + Ki * sum_err_oz + Kd * diff_err_oz);
+        int diff_velocity = Koz * abs(speed) * (Kp*2 * err_oz + Ki*4 * sum_err_oz + Kd * diff_err_oz);
         
         if (move_break)
             break;
@@ -163,6 +163,7 @@ void AGV::Rotate(float target_oz, const int &speed)
         Car::Move(-diff_velocity, -diff_velocity, 0.0f);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_oz) > threshold);
+    cout << oz << "   " << flush;
     Stop();
 }
 
@@ -220,7 +221,7 @@ void AGV::InitialMap()
     /* Disable map update */
     slamware_ros_sdk::SetMapUpdateRequest msg;
     msg.enabled = false;
-    ros::Publisher mapUpdatePub = n.advertise<slamware_ros_sdk::SetMapUpdateRequest>("/slamware_ros_sdk_server_node/set_map_update", 1);
+    ros::Publisher mapUpdatePub = n.advertise<slamware_ros_sdk::SetMapUpdateRequest>('/' + node_name + "_slam/set_map_update", 1);
     mapUpdatePub.publish(msg);
     ros::spinOnce();
 
@@ -238,7 +239,7 @@ void AGV::InitialMap()
     ifs.read((char*)srvMsg.request.raw_stcm.data(), szDat);
     if (ifs.gcount() != szDat)
         printf("Failed to read file data.\n");
-    ros::ServiceClient client = n.serviceClient<slamware_ros_sdk::SyncSetStcm>("/slamware_ros_sdk_server_node/sync_set_stcm");
+    ros::ServiceClient client = n.serviceClient<slamware_ros_sdk::SyncSetStcm>('/' + node_name + "_slam/sync_set_stcm");
     client.waitForExistence();
     if (client.call(srvMsg))
         printf("Succeeded in calling syncSetStcm.\n");
@@ -248,7 +249,7 @@ void AGV::InitialMap()
     /* Relocalize */
     while (now_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
-    const float now_x = now_state.at(idx).at(0) * map_w * map_unit;
+    const float now_x = now_state.at(idx).at(0) * map_w * map_unit - 0.25;
     const float now_y = now_state.at(idx).at(1) * map_h * map_unit;
     x = y = -1; // Initialize with a unreachable point
     geometry_msgs::Pose pose;
@@ -263,7 +264,7 @@ void AGV::InitialMap()
     pose.orientation.y = quat_msg.y;
     pose.orientation.z = quat_msg.z;
     pose.orientation.w = quat_msg.w;
-    ros::Publisher pub_pose = n.advertise<geometry_msgs::Pose>("/slamware_ros_sdk_server_node/set_pose", 0);
+    ros::Publisher pub_pose = n.advertise<geometry_msgs::Pose>('/' + node_name + "_slam/set_pose", 0);
     while(x != now_x || y != now_y || oz != 0)
     {
         pub_pose.publish(pose);
@@ -275,7 +276,7 @@ void AGV::InitialMap()
 
 void AGV::InitialRos()
 {
-    sub_pos = n.subscribe("/slamware_ros_sdk_server_node/odom", 1000, &AGV::PosCallBack, this);
+    sub_pos = n.subscribe('/' + node_name + "_slam/odom", 1000, &AGV::PosCallBack, this);
     sub_now_state = n.subscribe('/' + env_name + "/now_state", 1000, &AGV::NowStateCallBack, this);
     sub_next_state = n.subscribe('/' + env_name + "/next_state", 1000, &AGV::NextStateCallBack, this);
     thread_sub = thread(&AGV::Sub, this);
@@ -318,7 +319,7 @@ void AGV::CheckData()
     while (now_state.size() < num_agent || next_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
     
-    next_x = next_state.at(idx).at(0) * map_w * map_unit;
+    next_x = next_state.at(idx).at(0) * map_w * map_unit - 0.25;
     next_y = next_state.at(idx).at(1) * map_h * map_unit;
 }
 
