@@ -129,7 +129,7 @@ private:
 	float x, y, oz;
 	float next_x, next_y;
 	const float map_w, map_h;
-	const float map_unit;
+	const float map_unit, map_x_shift, map_y_shift;
 	const float threshold;
 	const float Kp, Ki, Kd, Koz;
 	const float Kp_oz, Ki_oz, Kd_oz;

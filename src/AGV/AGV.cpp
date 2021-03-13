@@ -13,13 +13,15 @@ AGV::AGV(const string &node_name, const string &env_name, const string &agent_na
       map_w(int(info.data.at(-2 + info.data.size()))),
       map_h(int(info.data.at(-1 + info.data.size()))),
       map_unit(0.5),
-      Kp(2.5), // 4.2
-      Ki(0.25),   // 0
-      Kd(0.5),   // 2
+      map_x_shift(0.25),
+      map_y_shift(0),
+      Kp(3),     // 4.2 2.5
+      Ki(0.5),   // 0  0.25
+      Kd(1.5),   // 2   0.5
       Koz(0.1),
       Kp_oz(1), // 1
       Ki_oz(0), // 0
-      Kd_oz(3), // 3
+      Kd_oz(4), // 3
       dt(0.001),
       threshold(0.01)
 {
@@ -48,7 +50,7 @@ void AGV::Move(const float target_x, const float target_y, const int &speed)
     const float abs_err_oz = atan2(target_y - y, target_x - x);
     if (abs(target_x - x) > map_unit / 2 || abs(target_y - y) > map_unit / 2)
     {
-        Rotate(abs_err_oz, speed);
+        Selfturn(abs_err_oz - oz, speed);
         MoveDirection(target_x, target_y, speed);
     }
     PubDone();
@@ -69,7 +71,7 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
     abs_err_y = target_y - y;
     float distance = sqrt(pow(abs_err_x, 2) + pow(abs_err_y, 2));
     const float target_oz = atan2(abs_err_y, abs_err_x);
-    Car::Rotate(rand()/RAND_MAX * 0.016 - 0.08, speed);
+    //Car::Rotate(rand()/RAND_MAX * 0.016 - 0.08, speed);
 
     do
     {
@@ -147,7 +149,9 @@ void AGV::Rotate(float target_oz, const int &speed)
     float err_oz = 0;
     float sum_err_oz = 0;
     float diff_err_oz = 0;
-
+    const float Kp_r = 12;
+    const float Ki_r = 7;
+    const float Kd_r = 0;
     do
     {
         diff_err_oz = ((target_oz - oz) - err_oz) / dt;
@@ -155,7 +159,7 @@ void AGV::Rotate(float target_oz, const int &speed)
         if (abs(err_oz) > 3 * M_PI_2)
             target_oz = copysignf(2 * M_PI - abs(target_oz), -target_oz);
         sum_err_oz += err_oz * dt;
-        int diff_velocity = Koz * abs(speed) * (Kp*2 * err_oz + Ki*4 * sum_err_oz + Kd * diff_err_oz);
+        int diff_velocity = Koz * abs(speed) * (Kp_r * err_oz + Ki_r * sum_err_oz + Kd_r * diff_err_oz);
         
         if (move_break)
             break;
@@ -183,9 +187,9 @@ void AGV::Selfturn(const float direction, const int &speed)
 	const float target_y = y;
     const float target_oz = oz + direction;
 
-    Car::MoveBackward(kWheelBase_2, speed);
-    Rotate(oz + direction, speed);
     Car::MoveForward(kWheelBase_2, speed);
+    Rotate(oz + direction, speed);
+    Car::MoveBackward(kWheelBase_2, speed);
     Stop();
 }
 
@@ -249,8 +253,8 @@ void AGV::InitialMap()
     /* Relocalize */
     while (now_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
-    const float now_x = now_state.at(idx).at(0) * map_w * map_unit - 0.25;
-    const float now_y = now_state.at(idx).at(1) * map_h * map_unit;
+    const float now_x = now_state.at(idx).at(0) * map_w * map_unit - map_x_shift;
+    const float now_y = now_state.at(idx).at(1) * map_h * map_unit - map_y_shift;
     x = y = -1; // Initialize with a unreachable point
     geometry_msgs::Pose pose;
     tf::Quaternion quat_tf;
@@ -319,8 +323,8 @@ void AGV::CheckData()
     while (now_state.size() < num_agent || next_state.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
     
-    next_x = next_state.at(idx).at(0) * map_w * map_unit - 0.25;
-    next_y = next_state.at(idx).at(1) * map_h * map_unit;
+    next_x = next_state.at(idx).at(0) * map_w * map_unit - map_x_shift;
+    next_y = next_state.at(idx).at(1) * map_h * map_unit - map_y_shift;
 }
 
 void AGV::ClearData()
