@@ -221,7 +221,7 @@ void AGV::InitialMap()
     /* Disable map update */
     slamware_ros_sdk::SetMapUpdateRequest msg;
     msg.enabled = false;
-    ros::Publisher mapUpdatePub = n.advertise<slamware_ros_sdk::SetMapUpdateRequest>('/' + node_name + "_slam/set_map_update", 1);
+    ros::Publisher mapUpdatePub = n.advertise<slamware_ros_sdk::SetMapUpdateRequest>('/' + node_name + "/slam/set_map_update", 1);
     mapUpdatePub.publish(msg);
     ros::spinOnce();
 
@@ -239,7 +239,7 @@ void AGV::InitialMap()
     ifs.read((char*)srvMsg.request.raw_stcm.data(), szDat);
     if (ifs.gcount() != szDat)
         printf("Failed to read file data.\n");
-    ros::ServiceClient client = n.serviceClient<slamware_ros_sdk::SyncSetStcm>('/' + node_name + "_slam/sync_set_stcm");
+    ros::ServiceClient client = n.serviceClient<slamware_ros_sdk::SyncSetStcm>('/' + node_name + "/slam/sync_set_stcm");
     client.waitForExistence();
     if (client.call(srvMsg))
         printf("Succeeded in calling syncSetStcm.\n");
@@ -264,7 +264,7 @@ void AGV::InitialMap()
     pose.orientation.y = quat_msg.y;
     pose.orientation.z = quat_msg.z;
     pose.orientation.w = quat_msg.w;
-    ros::Publisher pub_pose = n.advertise<geometry_msgs::Pose>('/' + node_name + "_slam/set_pose", 0);
+    ros::Publisher pub_pose = n.advertise<geometry_msgs::Pose>('/' + node_name + "/slam/set_pose", 0);
     while(x != now_x || y != now_y || oz != 0)
     {
         pub_pose.publish(pose);
@@ -276,7 +276,7 @@ void AGV::InitialMap()
 
 void AGV::InitialRos()
 {
-    sub_pos = n.subscribe('/' + node_name + "_slam/odom", 1000, &AGV::PosCallBack, this);
+    sub_pos = n.subscribe('/' + node_name + "/slam/odom", 1000, &AGV::PosCallBack, this);
     sub_now_state = n.subscribe('/' + env_name + "/now_state", 1000, &AGV::NowStateCallBack, this);
     sub_next_state = n.subscribe('/' + env_name + "/next_state", 1000, &AGV::NextStateCallBack, this);
     thread_sub = thread(&AGV::Sub, this);
