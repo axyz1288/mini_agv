@@ -37,7 +37,7 @@ spec:
           name: gui
       - configMapRef:
           name: ros
-    args: ["/bin/python3", "./mini_agv/AGV.py", "-E=agv", "-A=gacomm", "-m=./mini_agv/AGV.npy", "-a=1"]
+    args: ["/bin/python3", "./mini_agv/AGV.py", "-E=agv", "-A=gacomm", "-m=./mini_agv/AGV.npy", "-a=3"]
   volumes:
     - name: x11
       persistentVolumeClaim:
@@ -82,7 +82,7 @@ spec:
     envFrom:
       - configMapRef:
           name: ros
-    args: ["/bin/python3", "./mini_agv/main.py", "-E=agv", "-A=gacomm", "--load-model=0"]
+    args: ["/bin/python3", "./mini_agv/main.py", "-E=agv", "-A=gacomm", "--load-model=60000"]
   volumes:
   - name: model
     persistentVolumeClaim:
