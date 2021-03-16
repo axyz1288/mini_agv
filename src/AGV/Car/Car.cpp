@@ -64,6 +64,10 @@ void Car::Move(const int &velocity_L, const int &velocity_R, const float &distan
 
     if (distance == 0)
     {
+        if (!GetMotor_TorqueEnable(wheel_L))
+            SetMotor_TorqueEnable(wheel_L, true);
+        if (!GetMotor_TorqueEnable(wheel_R))
+            SetMotor_TorqueEnable(wheel_R, true);
         SetMotor_Velocity(wheel_L, tmp_velocity_L);
         SetMotor_Velocity(wheel_R, tmp_velocity_R);
     }
@@ -90,7 +94,10 @@ void Car::Move(const int &velocity_L, const int &velocity_R, const float &distan
             tmp_velocity_L = copysignf((present_velocity_L * VEL2METER_MS + accel_L * ACCEL2METER_MS2 * rising_time) / VEL2METER_MS, velocity_L);
             tmp_velocity_R = copysignf((present_velocity_R * VEL2METER_MS + accel_R * ACCEL2METER_MS2 * rising_time) / VEL2METER_MS, velocity_R);
         }
-
+        if (!GetMotor_TorqueEnable(wheel_L))
+            SetMotor_TorqueEnable(wheel_L, true);
+        if (!GetMotor_TorqueEnable(wheel_R))
+            SetMotor_TorqueEnable(wheel_R, true);
         SetMotor_Velocity(wheel_L, tmp_velocity_L);
         SetMotor_Velocity(wheel_R, tmp_velocity_R);
         WaitAllMotorsArrival(steady_time + rising_time);
