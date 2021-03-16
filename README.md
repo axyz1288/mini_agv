@@ -10,14 +10,17 @@ Mini-AGV is a **low cost** and **small volume** AGV with **AI algorithm**. With 
 * Max Load: **30kgw**
 # Setup Process
 ## Master   
-1. Install Microk8s and change docker default runtime to nvidia.
-2. Lable master node agent=master and all agv nodes agent=agv
-3. Set apiserver flag --allow-privileged=true
-4. Deploy configmaps, storage/master and master.yaml.
+1. Install Microk8s and kubelet CRI change to docker.
+2. Set Docker default runtime to nvidia docker runtime.
+3. Lable master node agent=master and all agv nodes agent=agv
+4. Set apiserver flag --allow-privileged=true
+5. Deploy configmaps, storage/master and master.yaml.
 ## AGV
 1. Set Jetson nano username to agv for mount path and desktop name to agv1, agv2, ... agvN for ros.
-2. Install Microk8s and set kubelet node_ip to prevent internal ip from setting to lidar ip.
-3. Deployment storage/agv and agv.yaml.
+2. Disable nano power_save (sudo iw dev wlan0 set power_save off).
+3. Disable swap permanently.(sudo swapoff -a && sudo sed -i.bak '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab)
+3. Install Microk8s and disable ha-cluster
+4. Deployment storage/agv and agv.yaml.
 # Notice
 1. tf 
 2. map.stcm path (Dockerfile & AGV.cpp)
