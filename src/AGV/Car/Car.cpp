@@ -207,6 +207,7 @@ void Car::EmergencyStop()
             Stop();
             SetMotor_TorqueEnable(wheel_L, false);
             SetMotor_TorqueEnable(wheel_R, false);
+            this_thread::sleep_for(std::chrono::milliseconds(200));
             exit(0);
         }
     }
@@ -216,6 +217,9 @@ void Car::CheckData()
 {
     while (action.size() < num_agent || reward.size() < num_agent)
         this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    if (reward.at(idx).at(0) < 0)
+        action[idx][0] = 0; 
 }
 
 void Car::ClearData()
@@ -241,7 +245,7 @@ void Car::PubDone()
 {
     std_msgs::Float32MultiArray msg;
     msg.data = {1};
-    while(pub_done.getNumSubscribers() == 0)
+    while(pub_done.getNumSubscribers() != 1) // model
         this_thread::sleep_for(std::chrono::milliseconds(50));
     pub_done.publish(msg);
 }
