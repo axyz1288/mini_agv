@@ -161,7 +161,7 @@ void Car::RotateConveyor(const float &direction)
 void Car::Put(const int &velocity)
 {
     SetMotor_Velocity(Conveyor, -velocity);
-    this_thread::sleep_for(std::chrono::seconds(3));
+    this_thread::sleep_for(std::chrono::seconds(5));
     SetMotor_Velocity(Conveyor, 0);
 }
 
@@ -252,7 +252,7 @@ void Car::PubDone()
 {
     std_msgs::Float32MultiArray msg;
     msg.data = {1};
-    while(pub_done.getNumSubscribers() != 1) // model
+    while(pub_done.getNumSubscribers() == 0)
         this_thread::sleep_for(std::chrono::milliseconds(50));
     pub_done.publish(msg);
 }

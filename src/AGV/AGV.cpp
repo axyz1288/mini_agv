@@ -14,14 +14,14 @@ AGV::AGV(const string &node_name, const string &env_name, const string &agent_na
       map_h(int(info.data.at(-1 + info.data.size()))),
       map_unit(0.5),
       map_x_shift(0.2),
-      map_y_shift(0),
-      Kp(4),     // 4.2 2.5
-      Ki(0.5),   // 0  0.25
-      Kd(1),   // 2   0.5
+      map_y_shift(0.1),
+      Kp(4),
+      Ki(0.5),
+      Kd(1),
       Koz(0.5),
-      Kp_oz(1), // 1
-      Ki_oz(0), // 0
-      Kd_oz(15), // 3
+      Kp_oz(1),
+      Ki_oz(0),
+      Kd_oz(15),
       dt(0.001),
       threshold(0.01)
 {
@@ -51,7 +51,10 @@ void AGV::Move(const float target_x, const float target_y, const int &speed)
     if (abs(target_x - x) > map_unit / 2 || abs(target_y - y) > map_unit / 2)
     {
         Selfturn(abs_err_oz - oz, speed);
+        // if (target_x == 0 - map_x_shift && target_y == 0.5 - map_y_shift)
         MoveDirection(target_x, target_y, speed);
+        // else
+        //     MoveDirection(target_x, target_y, speed);
     }
     PubDone();
 }
@@ -211,7 +214,21 @@ void AGV::Put(const int &velocity)
     PubDone();
 }
 
-
+void AGV::Pick()
+{
+    std_msgs::Int8 msg;
+    msg.data = 2;
+    while(pub_product.getNumSubscribers() < num_agent + 2) //Env + Yuan control
+        this_thread::sleep_for(std::chrono::milliseconds(50));
+    pub_product.publish(msg);
+    RotateConveyor(copysignf(M_PI, oz) - oz);
+    
+    while(is_product != 3)
+        this_thread::sleep_for(std::chrono::milliseconds(500));
+    // this_thread::sleep_for(std::chrono::milliseconds(5000));
+    RotateConveyor(0);
+    PubDone();
+}
 
 /* 
 Ros
@@ -279,6 +296,8 @@ void AGV::InitialRos()
     sub_pos = n.subscribe('/' + node_name + "/slam/odom", 1000, &AGV::PosCallBack, this);
     sub_now_state = n.subscribe('/' + env_name + "/now_state", 1000, &AGV::NowStateCallBack, this);
     sub_next_state = n.subscribe('/' + env_name + "/next_state", 1000, &AGV::NextStateCallBack, this);
+    sub_product = n.subscribe("/six_arm/product", 1000, &AGV::ProductCallBack, this);
+    pub_product = n.advertise<std_msgs::Int8>("/six_arm/product", 1000);
     thread_sub = thread(&AGV::Sub, this);
 }
 
@@ -311,6 +330,11 @@ void AGV::NowStateCallBack(const std_msgs::Float32MultiArray &msg)
 void AGV::NextStateCallBack(const std_msgs::Float32MultiArray &msg)
 {
     next_state.push_back(msg.data);
+}
+
+void AGV::ProductCallBack(const std_msgs::Int8 &msg)
+{
+    is_product = msg.data;
 }
 
 void AGV::CheckData()

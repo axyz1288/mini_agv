@@ -2,6 +2,7 @@
 #include "./Car/Car.h"
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
+#include <std_msgs/Int8.h>
 #include <nav_msgs/Odometry.h>
 #include <geometry_msgs/Quaternion.h>
 #include <tf/transform_datatypes.h>
@@ -87,6 +88,9 @@ public:
 	@ velocity
 	*/
 	virtual void Put(const int &velocity = default_velocity);
+	/*
+	*/
+	void Pick();
 
 // Get
 	virtual const int GetAction();
@@ -103,6 +107,7 @@ private:
 	void PosCallBack(const nav_msgs::Odometry &msg);
 	void NowStateCallBack(const std_msgs::Float32MultiArray &msg);
 	void NextStateCallBack(const std_msgs::Float32MultiArray &msg);
+	void ProductCallBack(const std_msgs::Int8 &msg);
 public:
 	virtual void CheckData();
 	virtual void ClearData();
@@ -120,8 +125,11 @@ private:
 	ros::Subscriber sub_pos;
 	ros::Subscriber sub_now_state;
 	ros::Subscriber sub_next_state;
+	ros::Subscriber sub_product;
+	ros::Publisher pub_product;
 	thread thread_sub;
 	bool delete_thread_sub = false;
+	int is_product = -1;
 
 	vector<vector<float>> now_state = {}; 
 	vector<vector<float>> next_state = {};

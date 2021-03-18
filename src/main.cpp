@@ -10,10 +10,12 @@ int main(int argc, char *argv[])
         cout << "check data\n" << flush;
         agv->CheckData();
         cout << agv->GetAction() << '\n' << flush;
-        if(agv->GetAction() == 0 || agv->GetAction() == 5)
+        if(agv->GetAction() == 0)
             agv->PubDone();
         else if(agv->GetAction() == 1 || agv->GetAction() == 2 || agv->GetAction() == 3 || agv->GetAction() == 4)
             agv->Move(agv->GetNextX(), agv->GetNextY(), 50);
+        else if(agv->GetAction() == 5)
+            agv->Pick();
         else if(agv->GetAction() == 6)
             agv->Put();
         else
