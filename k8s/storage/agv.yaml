@@ -29,3 +29,35 @@ spec:
   resources:
     requests:
       storage: 10Mi
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: slam
+spec:
+  storageClassName: local-storage
+  local:
+    path: /home/agv/slam
+  capacity:
+    storage: 100Mi
+  volumeMode: Filesystem
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: agent
+          operator: In
+          values: [agv]
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: slam
+spec:
+  storageClassName: local-storage
+  accessModes: [ReadWriteMany]
+  resources:
+    requests:
+      storage: 100Mi

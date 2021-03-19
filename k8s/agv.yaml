@@ -39,6 +39,8 @@ spec:
         volumeMounts:
         - name: dev
           mountPath: /dev
+        - name: slam
+          mountPath: /home/aiRobots/slam
         env:
         - name: ROS_IP
           valueFrom:
@@ -52,3 +54,6 @@ spec:
       - name: dev
         persistentVolumeClaim:
           claimName: dev
+      - name: slam
+        persistentVolumeClaim:
+          claimName: slam
