@@ -142,6 +142,4 @@ private:
 	const float Kp, Ki, Kd, Koz;
 	const float Kp_oz, Ki_oz, Kd_oz;
 	const float dt;
-
-	bool move_break = false;
 };

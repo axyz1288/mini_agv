@@ -3,7 +3,6 @@
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
 #include <thread>
-#include <mutex>
 
 class Car: public MotorUnion
 {
@@ -58,7 +57,9 @@ public:
 	*/
 	virtual void Put(const int &velocity = default_velocity);
 
-
+// Get
+	virtual const int GetAction();
+	const bool GetDone();
 
 // Ros
 private:
@@ -72,9 +73,6 @@ public:
 	virtual void CheckData();
 	virtual void ClearData();
 	virtual void PubDone();
-	const int GetAction();
-	const bool GetDone();
-
 
 // Properties
 public:
@@ -98,7 +96,6 @@ private:
 	ros::Publisher pub_done;
 	thread thread_sub;
 	thread thread_emstop;
-	mutex lock_clear;
 	bool delete_thread_sub = false;
 	bool delete_thread_emstop = false;
 	vector<vector<float>> action = {};
@@ -114,6 +111,7 @@ protected:
 	const float VEL2METER_MS;
 	const float ACCEL2METER_MS2;
 	const float kWheelBase_2;
-	const float kAxle_2; // 輪距
+	const float kAxle_2;
 	const int max_velocity;
+	bool is_stop = false;
 };

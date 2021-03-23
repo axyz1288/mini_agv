@@ -149,8 +149,12 @@ void Car::RotateRight(const float &direction, const int &speed)
 
 void Car::Stop()
 {
+    is_stop = true;
     SetMotor_Velocity(wheel_L, 0);
     SetMotor_Velocity(wheel_R, 0);
+    SetMotor_TorqueEnable(wheel_L, false);
+    SetMotor_TorqueEnable(wheel_R, false);
+    this_thread::sleep_for(std::chrono::milliseconds(200));
 }
 
 void Car::RotateConveyor(const float &direction)
@@ -212,9 +216,6 @@ void Car::EmergencyStop()
         if(GetDone() == true)
         {
             Stop();
-            SetMotor_TorqueEnable(wheel_L, false);
-            SetMotor_TorqueEnable(wheel_R, false);
-            this_thread::sleep_for(std::chrono::milliseconds(200));
             exit(0);
         }
     }
@@ -255,4 +256,5 @@ void Car::PubDone()
     while(pub_done.getNumSubscribers() == 0)
         this_thread::sleep_for(std::chrono::milliseconds(50));
     pub_done.publish(msg);
+    ros::spinOnce();
 }

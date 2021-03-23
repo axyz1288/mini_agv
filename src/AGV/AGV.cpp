@@ -75,6 +75,7 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
     float distance = sqrt(pow(abs_err_x, 2) + pow(abs_err_y, 2));
     const float target_oz = atan2(abs_err_y, abs_err_x);
 
+    is_stop = false;
     do
     {
         abs_err_x = target_x - x;
@@ -99,8 +100,7 @@ void AGV::MoveDirection(const float target_x, const float target_y, const int &s
     	const float velocity_y = abs(speed) * (Kp * err_y + Ki * sum_err_y + Kd * diff_err_y);
         const int velocity = copysignf(sqrt(pow(velocity_x, 2) + pow(velocity_y, 2)), velocity_x);
 
-        if (move_break)
-            break;
+        if (is_stop) break;
 		if (abs_oz > 3/2 * M_PI)
 			abs_oz = copysignf(2 * M_PI - abs(abs_oz), -abs_oz);
         Car::MoveDirection(direction, 0.0f, velocity);
@@ -151,6 +151,8 @@ void AGV::Rotate(float target_oz, const int &speed)
     float err_oz = 0;
     float sum_err_oz = 0;
     float diff_err_oz = 0;
+
+    is_stop = false;
     do
     {
         diff_err_oz = ((target_oz - oz) - err_oz) / dt;
@@ -160,9 +162,7 @@ void AGV::Rotate(float target_oz, const int &speed)
         sum_err_oz += err_oz * dt;
         int diff_velocity = Koz * abs(speed) * (Kp * err_oz + Ki * sum_err_oz + Kd * diff_err_oz);
         
-        if (move_break)
-            break;
-
+        if (is_stop) break;
         Car::Move(-diff_velocity, -diff_velocity, 0.0f);
         this_thread::sleep_for(std::chrono::milliseconds(int(dt * 1000)));
     } while (abs(err_oz) > threshold);
@@ -194,10 +194,7 @@ void AGV::Selfturn(const float direction, const int &speed)
 
 void AGV::Stop()
 {
-    move_break = true;
     Car::Stop();
-    this_thread::sleep_for(std::chrono::milliseconds(100));
-    move_break = false;
 }
 
 void AGV::RotateConveyor(const float &direction)
