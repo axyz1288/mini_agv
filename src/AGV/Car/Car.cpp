@@ -164,7 +164,7 @@ void Car::RotateConveyor(const float &direction)
 
 void Car::Put(const int &velocity)
 {
-    SetMotor_Velocity(Conveyor, -velocity);
+    SetMotor_Velocity(Conveyor, velocity);
     this_thread::sleep_for(std::chrono::seconds(5));
     SetMotor_Velocity(Conveyor, 0);
 }
