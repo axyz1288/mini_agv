@@ -1,5 +1,8 @@
 # Mini-AGV
-Mini-AGV is a **low cost** and **small volume** AGV with **AI algorithm**. With Mini-AGV, you can reduce your human resource and increase productivity.
+Mini-AGV is a **low cost** and **small volume** AGV with **AI algorithm**. With Mini-AGV, you can reduce your human resource and increase productivity.  
+[![AI Multi-AGV Introduction](https://i9.ytimg.com/vi/v9cYd-3UGPo/mqdefault.jpg?v=61239a0f&sqp=CPiyjokG&rs=AOn4CLCPGJZA3riUKZ4jCyLpZXEvy_ujTg)](https://youtu.be/v9cYd-3UGPo)  
+[![AI Multi-AGV Introduction](https://i9.ytimg.com/vi_webp/6-u3VT48lsA/mqdefault.webp?v=612399f0&sqp=CPiyjokG&rs=AOn4CLDa16M2XchhxviOI5WIGBYu_E-Zzg)](https://youtu.be/6-u3VT48lsA)  
+
 # Spec
 * Embedding system: **nvidia nano**
 * Motor: **robotis mx-106** x 4
